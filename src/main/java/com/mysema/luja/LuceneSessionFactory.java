@@ -1,4 +1,4 @@
-package com.mysema.query.lucene.session;
+package com.mysema.luja;
 
 public interface LuceneSessionFactory {
 

@@ -1,4 +1,4 @@
-package com.mysema.query.lucene.session.impl;
+package com.mysema.luja.impl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,9 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mysema.commons.lang.Assert;
+import com.mysema.luja.LuceneSession;
+import com.mysema.luja.LuceneSessionFactory;
 import com.mysema.query.QueryException;
-import com.mysema.query.lucene.session.LuceneSession;
-import com.mysema.query.lucene.session.LuceneSessionFactory;
 
 /**
  * Holds the thread local sessions. This can handle several session factories

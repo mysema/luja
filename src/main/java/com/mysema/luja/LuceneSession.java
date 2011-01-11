@@ -1,4 +1,4 @@
-package com.mysema.query.lucene.session;
+package com.mysema.luja;
 
 import com.mysema.query.lucene.LuceneQuery;
 import com.mysema.query.lucene.TypedQuery;

@@ -1,6 +1,8 @@
-package com.mysema.query.lucene.session.impl;
+package com.mysema.luja.impl;
 
-import static com.mysema.query.lucene.session.QueryTestHelper.*;
+import static com.mysema.luja.QueryTestHelper.createDocument;
+import static com.mysema.luja.QueryTestHelper.createDocuments;
+import static com.mysema.luja.QueryTestHelper.getDocument;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.lucene.store.RAMDirectory;
@@ -8,23 +10,23 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 
+import com.mysema.luja.LuceneSession;
+import com.mysema.luja.LuceneSessionFactory;
+import com.mysema.luja.LuceneTransactional;
+import com.mysema.luja.QDocument;
+import com.mysema.luja.SessionNotBoundException;
+import com.mysema.luja.SessionReadOnlyException;
 import com.mysema.query.lucene.LuceneQuery;
-import com.mysema.query.lucene.session.LuceneSession;
-import com.mysema.query.lucene.session.LuceneSessionFactory;
-import com.mysema.query.lucene.session.LuceneTransactional;
-import com.mysema.query.lucene.session.SessionNotBoundException;
-import com.mysema.query.lucene.session.QDocument;
-import com.mysema.query.lucene.session.SessionReadOnlyException;
 
 public class LuceneTransactionalHandlerTest {
 
     private LuceneSessionFactory sessionFactory;
     
-    private LuceneTransactionHandler handler = new LuceneTransactionHandler();
+    private final LuceneTransactionHandler handler = new LuceneTransactionHandler();
 
     private TestDao testDao;
     
-    private QDocument doc = new QDocument("test");
+    private final QDocument doc = new QDocument("test");
 
     @Before
     public void before() {
@@ -131,7 +133,7 @@ public class LuceneTransactionalHandlerTest {
 
         private int count = 0;
 
-        private LuceneSessionFactory[] factories;
+        private final LuceneSessionFactory[] factories;
         
         private NestedDao nested;
         
@@ -208,7 +210,7 @@ public class LuceneTransactionalHandlerTest {
     
     private class NestedDaoImpl implements NestedDao {
 
-        private LuceneSessionFactory sessionFactory;
+        private final LuceneSessionFactory sessionFactory;
         
         public NestedDaoImpl(LuceneSessionFactory sessionFactory) {
             this.sessionFactory = sessionFactory;

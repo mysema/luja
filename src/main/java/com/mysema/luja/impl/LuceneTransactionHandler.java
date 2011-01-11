@@ -1,4 +1,4 @@
-package com.mysema.query.lucene.session.impl;
+package com.mysema.luja.impl;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -6,7 +6,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mysema.query.lucene.session.LuceneTransactional;
+import com.mysema.luja.LuceneTransactional;
 
 @Aspect
 public class LuceneTransactionHandler {

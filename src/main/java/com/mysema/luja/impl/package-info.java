@@ -8,7 +8,7 @@
  * Contains basic Query elements
  */
 @DefaultAnnotation( { Nonnull.class })
-package com.mysema.query.lucene.session.impl;
+package com.mysema.luja.impl;
 
 import javax.annotation.Nonnull;
 

@@ -1,15 +1,15 @@
-package com.mysema.query.lucene.session.impl;
+package com.mysema.luja.impl;
 
 import javax.annotation.Nullable;
 
+import com.mysema.luja.LuceneSession;
+import com.mysema.luja.LuceneWriter;
+import com.mysema.luja.SessionClosedException;
+import com.mysema.luja.SessionReadOnlyException;
 import com.mysema.query.QueryException;
 import com.mysema.query.lucene.LuceneQuery;
 import com.mysema.query.lucene.LuceneSerializer;
 import com.mysema.query.lucene.TypedQuery;
-import com.mysema.query.lucene.session.LuceneSession;
-import com.mysema.query.lucene.session.LuceneWriter;
-import com.mysema.query.lucene.session.SessionClosedException;
-import com.mysema.query.lucene.session.SessionReadOnlyException;
 
 public class LuceneSessionImpl implements LuceneSession {
 

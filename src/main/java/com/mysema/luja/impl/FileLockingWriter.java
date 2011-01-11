@@ -1,4 +1,4 @@
-package com.mysema.query.lucene.session.impl;
+package com.mysema.luja.impl;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -6,17 +6,17 @@ import java.io.IOException;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.LockObtainFailedException;
 import org.apache.lucene.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mysema.luja.LuceneWriter;
+import com.mysema.luja.WriteLockObtainFailedException;
 import com.mysema.query.QueryException;
-import com.mysema.query.lucene.session.LuceneWriter;
-import com.mysema.query.lucene.session.WriteLockObtainFailedException;
 
 public class FileLockingWriter implements LuceneWriter, Leasable {
 

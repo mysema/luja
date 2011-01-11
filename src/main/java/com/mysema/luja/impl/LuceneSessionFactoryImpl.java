@@ -1,4 +1,4 @@
-package com.mysema.query.lucene.session.impl;
+package com.mysema.luja.impl;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,10 +13,10 @@ import org.apache.lucene.store.SimpleFSDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mysema.luja.LuceneSession;
+import com.mysema.luja.LuceneSessionFactory;
+import com.mysema.luja.SessionNotBoundException;
 import com.mysema.query.QueryException;
-import com.mysema.query.lucene.session.LuceneSession;
-import com.mysema.query.lucene.session.LuceneSessionFactory;
-import com.mysema.query.lucene.session.SessionNotBoundException;
 
 public class LuceneSessionFactoryImpl implements LuceneSessionFactory {
 

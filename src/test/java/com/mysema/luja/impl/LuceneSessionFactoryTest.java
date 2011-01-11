@@ -1,9 +1,9 @@
-package com.mysema.query.lucene.session.impl;
+package com.mysema.luja.impl;
 
-import static com.mysema.query.lucene.session.QueryTestHelper.addData;
-import static com.mysema.query.lucene.session.QueryTestHelper.createDocument;
-import static com.mysema.query.lucene.session.QueryTestHelper.createDocuments;
-import static com.mysema.query.lucene.session.QueryTestHelper.getDocument;
+import static com.mysema.luja.QueryTestHelper.addData;
+import static com.mysema.luja.QueryTestHelper.createDocument;
+import static com.mysema.luja.QueryTestHelper.createDocuments;
+import static com.mysema.luja.QueryTestHelper.getDocument;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -21,14 +21,14 @@ import org.apache.lucene.store.RAMDirectory;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.mysema.luja.LuceneSession;
+import com.mysema.luja.LuceneSessionFactory;
+import com.mysema.luja.QDocument;
+import com.mysema.luja.SessionClosedException;
+import com.mysema.luja.SessionNotBoundException;
+import com.mysema.luja.SessionReadOnlyException;
 import com.mysema.query.QueryException;
 import com.mysema.query.lucene.LuceneQuery;
-import com.mysema.query.lucene.session.LuceneSession;
-import com.mysema.query.lucene.session.LuceneSessionFactory;
-import com.mysema.query.lucene.session.QDocument;
-import com.mysema.query.lucene.session.SessionClosedException;
-import com.mysema.query.lucene.session.SessionNotBoundException;
-import com.mysema.query.lucene.session.SessionReadOnlyException;
 import com.mysema.query.types.path.NumberPath;
 import com.mysema.query.types.path.StringPath;
 

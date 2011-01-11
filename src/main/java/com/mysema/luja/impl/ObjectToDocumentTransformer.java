@@ -1,4 +1,4 @@
-package com.mysema.query.lucene.session.impl;
+package com.mysema.luja.impl;
 
 import org.apache.commons.collections15.Transformer;
 import org.apache.lucene.document.Document;

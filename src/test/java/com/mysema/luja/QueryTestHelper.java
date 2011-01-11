@@ -1,4 +1,4 @@
-package com.mysema.query.lucene.session;
+package com.mysema.luja;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;

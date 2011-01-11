@@ -1,4 +1,4 @@
-package com.mysema.query.lucene.session.impl;
+package com.mysema.luja.impl;
 
 import static org.junit.Assert.assertEquals;
 
@@ -21,14 +21,12 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 
-import com.mysema.query.lucene.session.LuceneSession;
-import com.mysema.query.lucene.session.LuceneSessionFactory;
-import com.mysema.query.lucene.session.LuceneTransactional;
-import com.mysema.query.lucene.session.LuceneWriter;
-import com.mysema.query.lucene.session.QDocument;
-import com.mysema.query.lucene.session.QueryTestHelper;
-import com.mysema.query.lucene.session.impl.LuceneSessionFactoryImpl;
-import com.mysema.query.lucene.session.impl.LuceneTransactionHandler;
+import com.mysema.luja.LuceneSession;
+import com.mysema.luja.LuceneSessionFactory;
+import com.mysema.luja.LuceneTransactional;
+import com.mysema.luja.LuceneWriter;
+import com.mysema.luja.QDocument;
+import com.mysema.luja.QueryTestHelper;
 
 public class ThreadingTest {
 
@@ -77,9 +75,9 @@ public class ThreadingTest {
 
     private static class TestDaoImpl implements TestDao {
 
-        private LuceneSessionFactory sessionFactory;
+        private final LuceneSessionFactory sessionFactory;
 
-        private QDocument doc = new QDocument("d");
+        private final QDocument doc = new QDocument("d");
 
         int counter = 1;
 
@@ -163,15 +161,15 @@ public class ThreadingTest {
 
     private static class TaskRunner implements Callable<List<Throwable>> {
 
-        private String action;
+        private final String action;
 
-        private int requestsPerMinute;
+        private final int requestsPerMinute;
 
-        private int starDelayInSecs;
+        private final int starDelayInSecs;
 
         public boolean stop = false;
 
-        private int clients;
+        private final int clients;
 
         ScheduledExecutorService threads;
 
