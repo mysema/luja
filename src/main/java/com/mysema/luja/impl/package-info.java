@@ -4,9 +4,6 @@
  *
  */
 
-/**
- * Contains basic Query elements
- */
 @DefaultAnnotation( { Nonnull.class })
 package com.mysema.luja.impl;
 
