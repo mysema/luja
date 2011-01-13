@@ -8,6 +8,8 @@ import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.document.NumericField;
 
 import com.mysema.commons.lang.Assert;
+import com.mysema.luja.annotations.Field;
+import com.mysema.luja.annotations.Indexed;
 import com.mysema.query.QueryException;
 
 public class ObjectToDocumentTransformer implements Transformer<Object, Document> {

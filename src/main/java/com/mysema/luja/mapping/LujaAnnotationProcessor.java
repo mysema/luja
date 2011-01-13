@@ -12,6 +12,10 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 
+import com.mysema.luja.annotations.IndexEmbeddable;
+import com.mysema.luja.annotations.IndexEmbedded;
+import com.mysema.luja.annotations.Indexed;
+import com.mysema.luja.annotations.Transient;
 import com.mysema.query.apt.DefaultConfiguration;
 import com.mysema.query.apt.Processor;
 

@@ -12,6 +12,9 @@ import org.apache.lucene.document.NumericField;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.mysema.luja.annotations.Field;
+import com.mysema.luja.annotations.Indexed;
+
 
 public class ObjectToDocumentTransformerTest {
 
