@@ -40,9 +40,10 @@ public class LuceneSessionImpl implements LuceneSession {
 
     @Override
     public <T> TypedQuery<T> createQuery(Class<T> clazz) {
-        checkClosed();
-        return new TypedQuery<T>(serializer, getSearcher().getIndexSearcer(),
-                                 sessionFactory.getDocumentToObjectTransformer(clazz));
+        throw new UnsupportedOperationException("This feature is not yet available");
+        // checkClosed();
+        // return new TypedQuery<T>(serializer, getSearcher().getIndexSearcer(),
+        // sessionFactory.getDocumentToObjectTransformer(clazz));
     }
 
     @Override

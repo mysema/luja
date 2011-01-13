@@ -12,7 +12,7 @@ import com.mysema.query.QueryException;
 
 public class ObjectToDocumentTransformer implements Transformer<Object, Document> {
 
-    //private TypeHandler typeHandler;
+    // private TypeHandler typeHandler;
 
     /**
      * Tips: - pienet fieldit ennen suuria ja sitten niiden latauksia voi
@@ -46,8 +46,8 @@ public class ObjectToDocumentTransformer implements Transformer<Object, Document
                 } catch (Exception e) {
                     throw new QueryException(e);
                 }
-                
-                document.add(createField(name, value, field.getType(), fieldAnnotation));
+
+                addFieldsForType(document, name, value, field.getType(), fieldAnnotation);
             }
         }
 
@@ -55,58 +55,88 @@ public class ObjectToDocumentTransformer implements Transformer<Object, Document
 
     }
 
-    private Fieldable createField(String name, Object value, Class<?> fieldType, Field fieldAnnotation) {
-        
-        //Handling null, this is the same for all types.
-        //Null values are indexed in the different field and the
-        //searcher must use this field when user is querying null
-        //values
+    private void addFieldsForType(Document doc,
+            String name,
+            Object value,
+            Class<?> fieldType,
+            Field fieldAnnotation) {
+
+        // Handling null, this is the same for all types.
+        // Null values are indexed in the different field and the
+        // searcher must use this field when user is querying null
+        // values
         if (value == null) {
-            return new org.apache.lucene.document.Field(
-                    name + Constants.NULL_FIELD_POSTFIX, 
-                    Constants.NULL_FIELD_VALUE,
-                    Store.NO,
-                    Index.NOT_ANALYZED);
+            doc.add(new org.apache.lucene.document.Field(name + Constants.NULL_FIELD_POSTFIX,
+                                                        Constants.NULL_FIELD_VALUE, Store.NO,
+                                                        Index.NOT_ANALYZED));
+            return;
         }
-        
-        //Handling numbers
+
+        // Handling numbers
 
         // Integer and shorter
         if (fieldType == Byte.TYPE || fieldType == Short.TYPE || fieldType == Integer.TYPE
             || fieldType == Byte.class || fieldType == Short.class || fieldType == Integer.class) {
             NumericField numField = getNumericField(name, fieldAnnotation);
-            return numField.setIntValue(((Number) value).intValue());
+            doc.add(numField.setIntValue(((Number) value).intValue()));
+            return;
         }
 
         // Long
         if (fieldType == Long.TYPE || fieldType == Long.class) {
             NumericField numField = getNumericField(name, fieldAnnotation);
-            return numField.setLongValue(((Long) value).longValue());
+            doc.add(numField.setLongValue(((Long) value).longValue()));
+            return;
         }
 
         // Float
         if (fieldType == Float.TYPE || fieldType == Float.class) {
             NumericField numField = getNumericField(name, fieldAnnotation);
-            return numField.setFloatValue(((Float) value).floatValue());
+            doc.add(numField.setFloatValue(((Float) value).floatValue()));
+            return;
         }
 
         // Double
         if (fieldType == Double.TYPE || fieldType == Double.class) {
             NumericField numField = getNumericField(name, fieldAnnotation);
-            return numField.setDoubleValue(((Double) value).doubleValue());
-        }
-        
-        // Array
-        if (fieldType.isArray()) {
-            
+            doc.add(numField.setDoubleValue(((Double) value).doubleValue()));
+            return;
         }
 
+//        // Array
+//        if (fieldType.isArray()) {
+//            // Length
+//            Fieldable lengthField =
+//                new NumericField(name + ".lenght", Store.NO, true)
+//                        .setIntValue(((Object[]) value).length);
+//            // Collect indexed data
+//            Fieldable indexedField = createFieldFromIterable(name, (Iterable<?>) value);
+////            // Store values as json
+////            Fieldable jsonField = createJsonField(name, value);
+//        }
 
         // Handle other types
-        return new org.apache.lucene.document.Field(name, value.toString(),
+        doc.add(new org.apache.lucene.document.Field(name, value.toString(),
                                                     fieldAnnotation.store(),
-                                                    fieldAnnotation.index());
+                                                    fieldAnnotation.index()));
 
+    }
+
+    private Fieldable createFieldFromIterable(String name, Iterable<?> values) {
+        // TODO How the more complex cases should be handled
+        // We probably have to understand more about the nature of the actual
+        // type in the
+        // list
+        // One thing would be to create json tokenizer, which would skip all the
+        // json data and
+        // let json handle all the deep tostring handling
+
+        StringBuilder builder = new StringBuilder();
+        for (Object value : values) {
+            builder.append(value.toString()).append(' ');
+        }
+        return new org.apache.lucene.document.Field(name, builder.toString(), Store.NO,
+                                                    Index.ANALYZED);
     }
 
     private NumericField getNumericField(String name, Field fieldAnnotation) {

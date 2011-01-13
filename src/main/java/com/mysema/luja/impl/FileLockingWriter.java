@@ -73,7 +73,8 @@ public class FileLockingWriter implements LuceneWriter, Leasable {
 
     @Override
     public LuceneWriter addObject(Object object) {
-        return addDocument(sessionFactory.transformToDocument(object));
+        throw new UnsupportedOperationException("This feature is not yet supported");
+        //return addDocument(sessionFactory.transformToDocument(object));
     }
 
     @Override
