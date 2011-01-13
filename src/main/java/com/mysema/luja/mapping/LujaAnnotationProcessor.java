@@ -12,8 +12,6 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 
-import com.mysema.query.annotations.QueryEmbeddable;
-import com.mysema.query.annotations.QueryEmbedded;
 import com.mysema.query.apt.DefaultConfiguration;
 import com.mysema.query.apt.Processor;
 
@@ -27,9 +25,9 @@ public class LujaAnnotationProcessor extends AbstractProcessor{
         Class<? extends Annotation> entities = null;
         Class<? extends Annotation> entity = Indexed.class;
         Class<? extends Annotation> superType = null;
-        Class<? extends Annotation> embeddable = QueryEmbeddable.class;
-        Class<? extends Annotation> embedded = QueryEmbedded.class;
-        Class<? extends Annotation> skip = null;
+        Class<? extends Annotation> embeddable = IndexEmbeddable.class;
+        Class<? extends Annotation> embedded = IndexEmbedded.class;
+        Class<? extends Annotation> skip = Transient.class;
         
         DefaultConfiguration configuration = new DefaultConfiguration(
                 roundEnv, 
