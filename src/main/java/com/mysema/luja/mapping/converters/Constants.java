@@ -1,4 +1,4 @@
-package com.mysema.luja.mapping;
+package com.mysema.luja.mapping.converters;
 
 public final class Constants {
 

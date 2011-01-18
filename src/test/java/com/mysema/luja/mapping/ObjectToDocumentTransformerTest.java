@@ -5,37 +5,39 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field.Index;
-import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.document.NumericField;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.mysema.luja.annotations.Field;
-import com.mysema.luja.annotations.Indexed;
+import com.mysema.luja.mapping.converters.Constants;
+import com.mysema.luja.mapping.domain.FullyAnnotated;
+import com.mysema.luja.mapping.domain.NotAnnotated;
 
 
 public class ObjectToDocumentTransformerTest {
 
     private ObjectToDocumentTransformer transformer;
     
-    private IndexedDomain domain;
-    
     @Before
     public void before() {
         transformer = new ObjectToDocumentTransformer();
-        domain = new IndexedDomain();
-    }
-    
-    @Test(expected=TypeNotMappedException.class)
-    public void NotIndexed() {
-        transformer.transform(new Object());
     }
     
     @Test
-    public void BasicField() {
+    public void AnyObjectCanBeTransformed() {
+        assertNotNull(transformer.transform(new Object()));
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void InputCannotBeNull() {
+        transformer.transform(null);
+    }
+    
+    @Test
+    public void BasicFieldAnnotated() {
         
+        FullyAnnotated domain = new FullyAnnotated();
         Document doc = transformer.transform(domain);
 
         assertField(doc, "name", "Batman");
@@ -43,8 +45,6 @@ public class ObjectToDocumentTransformerTest {
         assertNullField(doc, "nullValue");
         assertField(doc, "notIndexedButStored", "a", true, false);
         assertField(doc, "notStoredButIndexed", "a", false, true);
-        assertNull(doc.getField("notIndexedAndStored"));
-       
         
         assertField(doc, "bool", "true");
         assertField(doc, "boolInst", "true");
@@ -54,44 +54,78 @@ public class ObjectToDocumentTransformerTest {
         assertField(doc, "characterInst", "a");
         assertNullField(doc, "nullCharacterInst");
         
-       
+        assertNull(doc.getField("notIndexedAndStored"));
       
     }
     
 
     @Test
+    public void BasicFieldNotAnnotated() {
+        
+        NotAnnotated domain = new NotAnnotated();
+        Document doc = transformer.transform(domain);
+
+        assertField(doc, "name", "Batman");
+        assertNullField(doc, "nullValue");
+        
+        assertField(doc, "bool", "true");
+        assertField(doc, "boolInst", "true");
+        assertNullField(doc, "nullBoolInst");
+        
+        assertField(doc, "character", "a");
+        assertField(doc, "characterInst", "a");
+        assertNullField(doc, "nullCharacterInst");
+
+        assertNumericIntField(doc, "byteNum",1);
+        assertNumericIntField(doc, "byteInst",1);
+        
+        assertNumericIntField(doc, "shortNum",1);
+        assertNumericIntField(doc, "shortInst",1);
+        
+        assertNumericIntField(doc, "intNum",1);
+        assertNumericIntField(doc, "intInst",1);
+        
+        assertNumericIntField(doc, "longNum",1);
+        assertNumericIntField(doc, "longInst",1);
+        
+        assertNumericDoubleField(doc, "floatNum",1.0);
+        assertNumericDoubleField(doc, "floatInst",1.0);
+        
+        assertNumericDoubleField(doc, "doubleNum",1.0);
+        assertNumericDoubleField(doc, "doubleInst",1.0);
+        
+        assertNullField(doc, "nullByteInst");
+        assertNullField(doc, "nullShortInst");
+        assertNullField(doc, "nullIntInst");
+        assertNullField(doc, "nullLongInst");
+        assertNullField(doc, "nullFloatInst");
+        assertNullField(doc, "nullDoubleInst");
+
+        
+    }
+    
+    @Test
     public void NumericFields() {
+        FullyAnnotated domain = new FullyAnnotated();
         Document doc = transformer.transform(domain);
         
-        NumericField nfield = (NumericField) doc.getFieldable("byteNum");
-        assertEquals(1, nfield.getNumericValue().byteValue());
-        nfield = (NumericField) doc.getFieldable("byteInst");
-        assertEquals(1, nfield.getNumericValue().byteValue());
+        assertNumericIntField(doc, "byteNum",1);
+        assertNumericIntField(doc, "byteInst",1);
         
-        nfield = (NumericField) doc.getFieldable("shortNum");
-        assertEquals(1, nfield.getNumericValue().shortValue());
-        nfield = (NumericField) doc.getFieldable("shortInst");
-        assertEquals(1, nfield.getNumericValue().shortValue());
+        assertNumericIntField(doc, "shortNum",1);
+        assertNumericIntField(doc, "shortInst",1);
         
-        nfield = (NumericField) doc.getFieldable("intNum");
-        assertEquals(1, nfield.getNumericValue().intValue());
-        nfield = (NumericField) doc.getFieldable("intInst");
-        assertEquals(1, nfield.getNumericValue().intValue());
+        assertNumericIntField(doc, "intNum",1);
+        assertNumericIntField(doc, "intInst",1);
         
-        nfield = (NumericField) doc.getFieldable("longNum");
-        assertEquals(1, nfield.getNumericValue().longValue());
-        nfield = (NumericField) doc.getFieldable("longInst");
-        assertEquals(1, nfield.getNumericValue().longValue());
+        assertNumericIntField(doc, "longNum",1);
+        assertNumericIntField(doc, "longInst",1);
         
-        nfield = (NumericField) doc.getFieldable("floatNum");
-        assertEquals(1.0f, nfield.getNumericValue().floatValue(), 0.0);
-        nfield = (NumericField) doc.getFieldable("floatInst");
-        assertEquals(1.0f, nfield.getNumericValue().floatValue(), 0.0);
+        assertNumericDoubleField(doc, "floatNum",1.0);
+        assertNumericDoubleField(doc, "floatInst",1.0);
         
-        nfield = (NumericField) doc.getFieldable("doubleNum");
-        assertEquals(1.0, nfield.getNumericValue().doubleValue(), 0.0);
-        nfield = (NumericField) doc.getFieldable("doubleInst");
-        assertEquals(1.0, nfield.getNumericValue().doubleValue(), 0.0);
+        assertNumericDoubleField(doc, "doubleNum",1.0);
+        assertNumericDoubleField(doc, "doubleInst",1.0);
         
         assertNullField(doc, "nullByteInst");
         assertNullField(doc, "nullShortInst");
@@ -102,126 +136,30 @@ public class ObjectToDocumentTransformerTest {
         
     }
     
-    @Test
-    public void Arrays() {
-        
-        Document doc = transformer.transform(domain);
-        
-        //assertNumericIntField(doc, "stringArray.length", 2);
-        //assertField(doc, "stringArray", "a b", false, true);
-        //assertField(doc, "stringArray.data", "{\"a\", \"b\"}")
-        
-        
-    }
+//    @Test
+//    public void Arrays() {
+//        IndexedArrays domain = new IndexedArrays();
+//        Document doc = transformer.transform(domain);
+//        
+//        assertNumericIntField(doc, "stringArray.length", 2);
+//        assertField(doc, "stringArray", "a b", false, true);
+//        assertField(doc, "stringArray:serialized", "{\"a\", \"b\"}", true, false);
+//        
+//        
+//    }
     
     private void assertNumericIntField(Document doc, String name, int value) {
-        NumericField nf = (NumericField) doc.getFieldable("name");
+        NumericField nf = (NumericField) doc.getFieldable(name);
         assertNotNull(nf);
         assertEquals(value, nf.getNumericValue().intValue());
     }
-
-    @Indexed
-    @SuppressWarnings("unused")
-    private static class IndexedDomain {
-        
-        @Field
-        private String name = "Batman";
-        
-        @Field(name="pet")
-        private String dog = "Labrador";
-        
-        @Field(index=Index.NO)
-        private String notIndexedButStored = "a";
-        
-        @Field(store=Store.NO)
-        private String notStoredButIndexed = "a";
-        
-        private String notIndexedAndStored;
-        
-        @Field
-        private String nullValue;
-        
-        @Field
-        private byte byteNum = 1;
-        
-        @Field
-        private Byte byteInst = 1;
-        
-        @Field
-        private Byte nullByteInst;
-
-        @Field
-        private short shortNum = 1;
-        
-        @Field
-        private Short shortInst = 1;
-        
-        @Field
-        private Short nullShortInst;
-        
-        @Field
-        private int intNum = 1;
-        
-        @Field
-        private Integer intInst = 1;
-        
-        @Field
-        private Integer nullIntInst;
-        
-        @Field
-        private long longNum = 1;
-        
-        @Field
-        private Long longInst = 1L;
-        
-        @Field
-        private Long nullLongInst;
-        
-        @Field
-        private float floatNum = 1.0f;
-        
-        @Field
-        private Float floatInst = 1.0f;
-        
-        @Field
-        private Float nullFloatInst;
-        
-        @Field
-        private double doubleNum = 1.0;
-        
-        @Field
-        private Double doubleInst = 1.0;
-        
-        @Field
-        private Double nullDoubleInst;
-        
-        @Field
-        private boolean bool = true;
-        
-        @Field
-        private Boolean boolInst = true;
-        
-        @Field
-        private Boolean nullBoolInst;
-        
-        @Field
-        private char character = 'a';
-        
-        @Field
-        private Character characterInst = 'a';
-        
-        @Field
-        private Character nullCharacterInst;
-        
-        @Field
-        private String[] stringArray = new String[] { "a", "b" };
-
+    
+    private void assertNumericDoubleField(Document doc, String name, double value) {
+        NumericField nf = (NumericField) doc.getFieldable(name);
+        assertNotNull(nf);
+        assertEquals(value, nf.getNumericValue().doubleValue(),0.0);
     }
-    
-
-    
-    
-    
+       
     private Fieldable assertNullField(Document doc, String name) {
         return assertField(
                 doc,
