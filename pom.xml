@@ -16,7 +16,7 @@
   <packaging>jar</packaging>
 
   <properties>
-    <querydsl.version>2.0.9</querydsl.version>
+    <querydsl.version>2.1.0-beta1</querydsl.version>
     <converters.version>0.1.1</converters.version>
   </properties>
 
