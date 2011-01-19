@@ -44,11 +44,11 @@
       <artifactId>querydsl-apt</artifactId>
       <version>${querydsl.version}</version>
     </dependency>
-    <dependency>
+    <!--dependency>
       <groupId>com.mysema.converters</groupId>
       <artifactId>converters</artifactId>
       <version>${converters.version}</version>
-    </dependency>
+    </dependency-->
     
     <dependency>
       <groupId>org.apache.lucene</groupId>
