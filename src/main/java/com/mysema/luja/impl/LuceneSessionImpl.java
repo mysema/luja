@@ -9,7 +9,6 @@ import com.mysema.luja.SessionReadOnlyException;
 import com.mysema.query.QueryException;
 import com.mysema.query.lucene.LuceneQuery;
 import com.mysema.query.lucene.LuceneSerializer;
-import com.mysema.query.lucene.TypedQuery;
 
 public class LuceneSessionImpl implements LuceneSession {
 
@@ -36,14 +35,6 @@ public class LuceneSessionImpl implements LuceneSession {
     public LuceneQuery createQuery() {
         checkClosed();
         return new LuceneQuery(serializer, getSearcher().getIndexSearcer());
-    }
-
-    @Override
-    public <T> TypedQuery<T> createQuery(Class<T> clazz) {
-        throw new UnsupportedOperationException("This feature is not yet available");
-        // checkClosed();
-        // return new TypedQuery<T>(serializer, getSearcher().getIndexSearcer(),
-        // sessionFactory.getDocumentToObjectTransformer(clazz));
     }
 
     @Override

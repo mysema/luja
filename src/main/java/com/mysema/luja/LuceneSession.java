@@ -1,7 +1,6 @@
 package com.mysema.luja;
 
 import com.mysema.query.lucene.LuceneQuery;
-import com.mysema.query.lucene.TypedQuery;
 
 /**
  * 
@@ -15,16 +14,6 @@ public interface LuceneSession {
      * @throws SessionClosedException if session is closed
      */
     LuceneQuery createQuery();
-
-    /**
-     * Creates a new typed query.
-     * 
-     * @param <T> The result type
-     * @param clazz The result class
-     * @return A new typed query instance
-     * @throws SessionClosedException if session is closed
-     */
-    <T> TypedQuery<T> createQuery(Class<T> clazz);
 
     /**
      * Adds documents to index. Creates a new index if the index is not
