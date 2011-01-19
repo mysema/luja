@@ -21,6 +21,8 @@ public class QDocument extends EntityPathBase<Document> {
     public final NumberPath<Integer> year = createNumber("year", Integer.class);
 
     public final StringPath title = createString("title");
+    
+    public final StringPath id = createString("id");
 
     public final NumberPath<Double> gross = createNumber("gross", Double.class);
 }

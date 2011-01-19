@@ -9,7 +9,7 @@ import org.apache.lucene.document.NumericField;
 public class FieldableFactory {
 
     public Fieldable getNullField(FieldMapping mapping) {
-        return new Field(mapping.getName() + Constants.NULL_FIELD_POSTFIX,
+        return new Field(mapping.getName() + Constants.NULL_FIELD,
                          Constants.NULL_FIELD_VALUE, Store.NO, Index.NOT_ANALYZED);
     }
 

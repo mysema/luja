@@ -185,9 +185,9 @@ public class LuceneTransactionalHandlerTest {
            LuceneSession s2 = factories[1].getCurrentSession();
            LuceneSession s3 = factories[2].getCurrentSession();
            
-           s1.beginReset().addDocument(createDocument("sf1","","",0,0));
-           s2.beginReset().addDocument(createDocument("sf2","","",0,0));
-           s3.beginReset().addDocument(createDocument("sf3","","",0,0));
+           s1.beginReset().addDocument(createDocument("1", "sf1","","",0,0));
+           s2.beginReset().addDocument(createDocument("2", "sf2","","",0,0));
+           s3.beginReset().addDocument(createDocument("3", "sf3","","",0,0));
         }
 
         @Override
@@ -199,7 +199,7 @@ public class LuceneTransactionalHandlerTest {
         @LuceneTransactional
         public void nested() {
             LuceneSession session = factories[0].getCurrentSession();
-            session.beginReset().addDocument(createDocument("nested","","",0,0));
+            session.beginReset().addDocument(createDocument("1", "nested","","",0,0));
             nested.nested();
         }
     }

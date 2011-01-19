@@ -1,5 +1,6 @@
 package com.mysema.luja.mapping.converters;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -32,6 +33,8 @@ public class LuceneConverters {
         register(Float.TYPE, new FloatConverter(factory));
         register(new DoubleConverter(factory));
         register(Double.TYPE, new DoubleConverter(factory));
+        
+        register(Collection.class, new CollectionConverter(factory));
     }
 
     public void register(LuceneConverter<?> converter) {

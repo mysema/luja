@@ -8,10 +8,12 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.document.NumericField;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.mysema.luja.mapping.converters.Constants;
 import com.mysema.luja.mapping.domain.FullyAnnotated;
+import com.mysema.luja.mapping.domain.IndexedArrays;
 import com.mysema.luja.mapping.domain.NotAnnotated;
 
 
@@ -136,17 +138,18 @@ public class ObjectToDocumentTransformerTest {
         
     }
     
-//    @Test
-//    public void Arrays() {
-//        IndexedArrays domain = new IndexedArrays();
-//        Document doc = transformer.transform(domain);
-//        
-//        assertNumericIntField(doc, "stringArray.length", 2);
-//        assertField(doc, "stringArray", "a b", false, true);
-//        assertField(doc, "stringArray:serialized", "{\"a\", \"b\"}", true, false);
-//        
-//        
-//    }
+    @Test
+    @Ignore
+    public void Arrays() {
+        IndexedArrays domain = new IndexedArrays();
+        Document doc = transformer.transform(domain);
+        
+        assertNumericIntField(doc, "stringArray:size", 2);
+        assertField(doc, "stringArray", "a b", false, true);
+        assertField(doc, "stringArray[0]", "a", true, false);
+        assertField(doc, "stringArray[1]", "b", true, false);
+        
+    }
     
     private void assertNumericIntField(Document doc, String name, int value) {
         NumericField nf = (NumericField) doc.getFieldable(name);
@@ -163,7 +166,7 @@ public class ObjectToDocumentTransformerTest {
     private Fieldable assertNullField(Document doc, String name) {
         return assertField(
                 doc,
-                name + Constants.NULL_FIELD_POSTFIX,
+                name + Constants.NULL_FIELD,
                 Constants.NULL_FIELD_VALUE,
                 false,
                 true);

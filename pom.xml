@@ -19,6 +19,19 @@
     <querydsl.version>2.1.0-beta1</querydsl.version>
     <converters.version>0.1.1</converters.version>
   </properties>
+  
+  <repositories>
+    <repository>
+      <id>mysema-releases</id>
+      <url>http://source.mysema.com/maven2/releases</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 
   <dependencies>
     <dependency>

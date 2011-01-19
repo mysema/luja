@@ -15,7 +15,7 @@ public final class QueryTestHelper {
     }
 
     public static Document getDocument() {
-        return createDocument("Sankarin seisaus",
+        return createDocument("1", "Sankarin seisaus",
                 "Veronica Pimenoff",
                 "Päivät kuluvat, ilmastointi saa nenän vuotamaan verta",
                 2010,
@@ -26,18 +26,21 @@ public final class QueryTestHelper {
         
         session.beginAppend()
            .addDocument(createDocument(
+                "1",
                 "Jurassic Park",
                 "Michael Crichton",
                 "It's a UNIX system! I know this!",
                 1990,
                 90.00))
            .addDocument(createDocument(
+                "2 A",
                 "Nummisuutarit",
                 "Aleksis Kivi",
                 "ESKO. Ja iloitset ja riemuitset?",
                 1864,
                 10.00))
             .addDocument(createDocument(
+                "3_B",
                 "Hobitti",
                 "J.R.R Tolkien",
                 "Miten voin palvella teitä, hyvät kääpiöt?",
@@ -48,6 +51,7 @@ public final class QueryTestHelper {
     }
 
     public static Document createDocument(
+            final String id,
             final String docTitle,
             final String docAuthor,
             final String docText,
@@ -55,6 +59,7 @@ public final class QueryTestHelper {
             final double docGross) {
         final Document doc = new Document();
 
+        doc.add(new Field("id", id, Store.YES, Index.NOT_ANALYZED));
         doc.add(new Field("title", docTitle, Store.YES, Index.ANALYZED));
         doc.add(new Field("author", docAuthor, Store.YES, Index.ANALYZED));
         doc.add(new Field("text", docText, Store.YES, Index.ANALYZED));

@@ -39,6 +39,8 @@ public class LuceneSessionFactoryTest {
     private Directory directory;
 
     private StringPath title;
+    
+    private StringPath id;
 
     private NumberPath<Integer> year;
 
@@ -50,6 +52,7 @@ public class LuceneSessionFactoryTest {
         final QDocument entityPath = new QDocument("doc");
         title = entityPath.title;
         year = entityPath.year;
+        id = entityPath.id;
     }
 
     @Test
@@ -60,11 +63,32 @@ public class LuceneSessionFactoryTest {
         LuceneSession session = sessionFactory.openSession(true);
         // Testing the queries work through session
         LuceneQuery query = session.createQuery();
-        List<Document> results = query.where(title.eq("Jurassic Park")).list();
 
+        List<Document> results = query.where(title.eq("Jurassic Park")).list();
         assertEquals(1, results.size());
         assertEquals("Jurassic Park", results.get(0).getField("title").stringValue());
 
+        results = query.where(title.startsWith("Jurassic")).list();
+        assertEquals(1, results.size());
+        
+        //The case does not matter currently
+        results = query.where(title.startsWith("jurassic p")).list();
+        assertEquals(1, results.size());
+
+        results = query.where(title.startsWithIgnoreCase("jurassic")).list();
+        assertEquals(1, results.size());
+        
+        results = query.where(id.eq("1")).list();
+        assertEquals(1, results.size());
+        
+        // FIXME This is not working, that's quite bad
+        // results = query.where(id.eq("2 A")).list();
+        // assertEquals(1, results.size());
+
+        // FIXME This is not working either
+        // results = query.where(id.eq("3_B")).list();
+        // assertEquals(1, results.size());
+        
         query = session.createQuery();
         long count = query.where(title.startsWith("Nummi")).count();
         assertEquals(1, count);
@@ -86,7 +110,7 @@ public class LuceneSessionFactoryTest {
         assertEquals(4, query.where(year.gt(1800)).count());
 
         // Adding new document
-        session.beginAppend().addDocument(createDocument("title", "author", "", 2010, 1));
+        session.beginAppend().addDocument(createDocument("1", "title", "author", "", 2010, 1));
 
         // New query will not see the addition
         query = session.createQuery();

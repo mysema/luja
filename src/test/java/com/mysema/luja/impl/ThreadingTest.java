@@ -102,7 +102,7 @@ public class ThreadingTest {
             int numOfDocs = 1000;
             for (int i = 0; i < numOfDocs; i++) {
                 writer.addDocument(QueryTestHelper.createDocument(
-                        "title " + counter,
+                        ""+i, "title " + counter,
                         "",
                         "",
                         counter,
@@ -124,7 +124,7 @@ public class ThreadingTest {
                 counter = 0;
             }
             session.beginReset().addDocument(
-                    QueryTestHelper.createDocument("title " + counter, "", "", counter, 0));
+                    QueryTestHelper.createDocument("1", "title " + counter, "", "", counter, 0));
             System.out.println("Resetted index ");
         }
 
