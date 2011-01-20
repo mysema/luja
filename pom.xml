@@ -11,7 +11,7 @@
   <groupId>com.mysema.luja</groupId>
   <artifactId>luja</artifactId>
   <name>Luja</name>
-  <version>0.5.2</version>
+  <version>0.5.2-SNAPSHOT</version>
   <description>Luja - Lucene/ORM</description>
   <packaging>jar</packaging>
 
