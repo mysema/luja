@@ -1,0 +1,42 @@
+Lucene ongelmat
+
+- kaikki haut menevät samalla serialisoinnilla
+-- kaikki lowercaseksi tapaus
+-- kyselystring splittaus
+
+- tarvitaan polun pohjalta päättely onko siihen liittyvä kenttä tokenisoitu vai ei
+
+TOKENISOITU 
+
+- "a b c"  --> "a" "b" "c"
+
+name.eq("a") --> name:a
+name.eq("a b") --> name:"a b" 
+name.eq("a b c") --> osuu
+name.eq("A B C") --> osuu --> johtuu siitä että StandardAnalyzer laittaa tokenit lowercase muodossa indeksiin
+name("a-b") --> "a" "b" --> name.eq("a-b") --> name:"a-b" --> ei osu 
+
+name.eqIgnoreCase --> on sama kuin eq --> haittaako vai ei?
+
+name.startsWith("a b") --> +name:a* +name:*b*  --> osuu myös name("a cb") --> minusta bugi
+name.startsWith("a-b") --> +name:a-b* --> mutta tämä ei osu mihinkään koska name("a-b") ---> "a" "b"
+
+TOKENISOIMATTOMAT (mikään näistä ei siis nyt toimi)
+
+name("a b") --> "a b"
+name.eq("a b") --> pitäisi osua
+name.eq("A B") --> ei osu
+name.eqIgnoreCase("A B") --> ??
+
+name.startsWith("a b") --> pitäisi osua
+name.startsWithIgnoreCase("A B") --> ??
+
+STEPIT
+
+- Field nimen päättely polusta
+- Tokenisoitu vai ei
+
+@Field( index = Index.ANALYZED | NOT_ANALYZED | NO )
+
+
+
