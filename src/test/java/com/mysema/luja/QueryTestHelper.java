@@ -26,7 +26,7 @@ public final class QueryTestHelper {
         
         session.beginAppend()
            .addDocument(createDocument(
-                "1",
+                "2",
                 "Jurassic Park",
                 "Michael Crichton",
                 "It's a UNIX system! I know this!",
@@ -60,7 +60,7 @@ public final class QueryTestHelper {
         final Document doc = new Document();
 
         doc.add(new Field("id", id, Store.YES, Index.NOT_ANALYZED));
-        doc.add(new Field("title", docTitle, Store.YES, Index.ANALYZED));
+        doc.add(new Field("title", docTitle, Store.YES, Index.NOT_ANALYZED));
         doc.add(new Field("author", docAuthor, Store.YES, Index.ANALYZED));
         doc.add(new Field("text", docText, Store.YES, Index.ANALYZED));
         doc.add(new NumericField("year", Store.YES, true).setIntValue(docYear));

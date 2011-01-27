@@ -13,9 +13,9 @@ import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 import com.mysema.luja.LuceneSession;
 import com.mysema.luja.LuceneSessionFactory;
 import com.mysema.luja.LuceneTransactional;
-import com.mysema.luja.QDocument;
 import com.mysema.luja.SessionNotBoundException;
 import com.mysema.luja.SessionReadOnlyException;
+import com.mysema.luja.mapping.domain.QMovie;
 import com.mysema.query.lucene.LuceneQuery;
 
 public class LuceneTransactionalHandlerTest {
@@ -26,7 +26,7 @@ public class LuceneTransactionalHandlerTest {
 
     private TestDao testDao;
     
-    private final QDocument doc = new QDocument("test");
+    private QMovie path = new QMovie("doc");
 
     @Before
     public void before() {
@@ -66,7 +66,7 @@ public class LuceneTransactionalHandlerTest {
         testDao.writing();
         
         LuceneQuery q = sessionFactory.openSession(true).createQuery();
-        assertEquals(4, q.where(doc.title.like("*")).count());
+        assertEquals(4, q.where(path.title.like("*")).count());
     }
     
     @Test
@@ -83,13 +83,13 @@ public class LuceneTransactionalHandlerTest {
         testDao.multiFactories();
         
         LuceneQuery q = sf1.openSession(true).createQuery();
-        assertEquals(1, q.where(doc.title.eq("sf1")).count());
+        assertEquals(1, q.where(path.title.eq("sf1")).count());
         
         q = sf2.openSession(true).createQuery();
-        assertEquals(1, q.where(doc.title.eq("sf2")).count());
+        assertEquals(1, q.where(path.title.eq("sf2")).count());
         
         q = sf3.openSession(true).createQuery();
-        assertEquals(1, q.where(doc.title.eq("sf3")).count());
+        assertEquals(1, q.where(path.title.eq("sf3")).count());
     }
     
     @Test
@@ -103,7 +103,7 @@ public class LuceneTransactionalHandlerTest {
         testDao.nested();
         
         LuceneSession session = sessionFactory.openSession(true);
-        assertEquals(1, session.createQuery().where(doc.title.eq("nested")).count());
+        assertEquals(1, session.createQuery().where(path.title.eq("nested")).count());
         session.close();
         
     }
@@ -222,14 +222,14 @@ public class LuceneTransactionalHandlerTest {
             LuceneSession session = sessionFactory.getCurrentSession(); 
             LuceneQuery query = session.createQuery();
             
-            assertEquals(0, query.where(doc.title.eq("nested")).count());
+            assertEquals(0, query.where(path.title.eq("nested")).count());
 
             // This verifies that the we are using the same session opened in
             // the caller scope
             session.flush();
 
             query = session.createQuery();
-            assertEquals(1, query.where(doc.title.eq("nested")).count());
+            assertEquals(1, query.where(path.title.eq("nested")).count());
         }
     }
 }

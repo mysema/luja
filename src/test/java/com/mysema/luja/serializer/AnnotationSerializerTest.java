@@ -12,6 +12,7 @@ import org.apache.lucene.store.RAMDirectory;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,6 +44,12 @@ public class AnnotationSerializerTest {
 
     DateTime t3 = new DateTime(2010, 1, 1, 12, 1, 1, 3);
 
+    LocalDateTime lt1 = new LocalDateTime(t1);
+
+    LocalDateTime lt2 = new LocalDateTime(t2);
+
+    LocalDateTime lt3 = new LocalDateTime(t3);
+
     Date jd1 = new Date(d1.toDateTimeAtStartOfDay(DateTimeZone.UTC).getMillis());
 
     Date jd2 = new Date(d2.toDateTimeAtStartOfDay(DateTimeZone.UTC).getMillis());
@@ -64,9 +71,6 @@ public class AnnotationSerializerTest {
 
         assertQuery(d.code.contains("ABC"), data.get(0), data.get(1), data.get(2));
         assertQuery(d.code.contains("abc"));
-
-        // not analyzed does not support ignorecase
-        assertQuery(d.code.equalsIgnoreCase("abc"));
 
         assertQuery(d.name.in("Aapeli", "Aakkonen"));
         assertQuery(d.name.in("Aapeli Aakkonen", "Esko Aakkonen"), data.get(0), data.get(2));
@@ -157,6 +161,28 @@ public class AnnotationSerializerTest {
     }
 
     @Test
+    public void LocalDateTimeSort() {
+        LuceneSession session = sessionFactory.openSession(true);
+        List<FieldAnnotated> results =
+            convertList(session.createQuery().orderBy(d.localTime.desc()).list());
+        assertEquals(data.get(2).getIntNumber(), results.get(0).getIntNumber());
+        assertEquals(data.get(1).getIntNumber(), results.get(1).getIntNumber());
+        assertEquals(data.get(0).getIntNumber(), results.get(2).getIntNumber());
+
+        results = convertList(session.createQuery().orderBy(d.localTime.asc()).list());
+        assertEquals(data.get(0).getIntNumber(), results.get(0).getIntNumber());
+        assertEquals(data.get(1).getIntNumber(), results.get(1).getIntNumber());
+        assertEquals(data.get(2).getIntNumber(), results.get(2).getIntNumber());
+    }
+
+    @Test
+    public void LocalDateTimeSearch() {
+        assertQuery(d.localTime.eq(lt1), data.get(0));
+        assertQuery(d.localTime.after(lt1), data.get(1), data.get(2));
+        assertQuery(d.localTime.between(lt1, lt1.plusMillis(1)), data.get(0), data.get(1));
+    }
+
+    @Test
     public void DatesAndTimesRoundtripWorks() {
         LuceneSession session = sessionFactory.openSession(true);
         List<FieldAnnotated> results = convertList(session.createQuery().list());
@@ -206,12 +232,12 @@ public class AnnotationSerializerTest {
         Locale enUs = new Locale("en", "US");
         Locale enUk = new Locale("en", "UK");
 
-        data.add(new FieldAnnotated(1, d1, t1, jd1, "ABC-123", "Aapeli Aakkonen",
+        data.add(new FieldAnnotated(1, d1, t1, lt1, jd1, "ABC-123", "Aapeli Aakkonen",
                                     "Java C++ Scala Ruby", fi));
-        data.add(new FieldAnnotated(2, d2, t2, jd2, "ABC-123 B", "Aapeli Ukkonen",
+        data.add(new FieldAnnotated(2, d2, t2, lt2, jd2, "ABC-123 B", "Aapeli Ukkonen",
                                     "Java C++ Groove Ruby", enUs));
 
-        data.add(new FieldAnnotated(3, d3, t3, jd3, "ABC-123 D", "Esko Aakkonen",
+        data.add(new FieldAnnotated(3, d3, t3, lt3, jd3, "ABC-123 D", "Esko Aakkonen",
                                     "PHP C Scala Ruby", enUk));
 
         LuceneSession session = sessionFactory.openSession(false);

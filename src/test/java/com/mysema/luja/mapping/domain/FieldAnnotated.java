@@ -13,6 +13,7 @@ import org.apache.lucene.document.NumericField;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 import com.mysema.luja.annotations.DateResolution;
 import com.mysema.luja.annotations.Field;
@@ -29,6 +30,9 @@ public class FieldAnnotated {
 
     @DateResolution(Resolution.MILLISECOND)
     private DateTime time;
+    
+    @DateResolution(Resolution.MILLISECOND)
+    private LocalDateTime localTime;
 
     @DateResolution(Resolution.DAY)
     private Date javaDate;
@@ -48,11 +52,12 @@ public class FieldAnnotated {
     public FieldAnnotated() {
     }
 
-    public FieldAnnotated(int intNumber, LocalDate date, DateTime time, Date javaDate, String code,
+    public FieldAnnotated(int intNumber, LocalDate date, DateTime time, LocalDateTime localTime, Date javaDate, String code,
                           String name, String tokenized, Locale locale) {
         this.intNumber = intNumber;
         this.date = date;
         this.time = time;
+        this.localTime = localTime;
         this.javaDate = javaDate;
         this.code = code;
         this.name = name;
@@ -70,6 +75,8 @@ public class FieldAnnotated {
                               DateTimeZone.UTC);
             time =
                 new DateTime(DateTools.stringToTime(document.getFieldable("time").stringValue()));
+            localTime =
+                new LocalDateTime(DateTools.stringToTime(document.getFieldable("localTime").stringValue()));
             javaDate =
                 new Date(DateTools.stringToTime(document.getFieldable("javaDate").stringValue()));
         } catch (ParseException e) {
@@ -91,6 +98,10 @@ public class FieldAnnotated {
 
         document.add(new org.apache.lucene.document.Field("time", DateTools.timeToString(
                 time.getMillis(),
+                Resolution.MILLISECOND.asLuceneResolution()), Store.YES, Index.NOT_ANALYZED));
+        
+        document.add(new org.apache.lucene.document.Field("localTime", DateTools.timeToString(
+                localTime.toDateTime(DateTimeZone.UTC).getMillis(),
                 Resolution.MILLISECOND.asLuceneResolution()), Store.YES, Index.NOT_ANALYZED));
 
         document.add(new org.apache.lucene.document.Field("javaDate", DateTools.timeToString(

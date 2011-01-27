@@ -25,8 +25,8 @@ import com.mysema.luja.LuceneSession;
 import com.mysema.luja.LuceneSessionFactory;
 import com.mysema.luja.LuceneTransactional;
 import com.mysema.luja.LuceneWriter;
-import com.mysema.luja.QDocument;
 import com.mysema.luja.QueryTestHelper;
+import com.mysema.luja.mapping.domain.QMovie;
 
 public class ThreadingTest {
 
@@ -77,7 +77,7 @@ public class ThreadingTest {
 
         private final LuceneSessionFactory sessionFactory;
 
-        private final QDocument doc = new QDocument("d");
+        private final QMovie doc = new QMovie("d");
 
         int counter = 1;
 

@@ -23,10 +23,10 @@ import org.junit.Test;
 
 import com.mysema.luja.LuceneSession;
 import com.mysema.luja.LuceneSessionFactory;
-import com.mysema.luja.QDocument;
 import com.mysema.luja.SessionClosedException;
 import com.mysema.luja.SessionNotBoundException;
 import com.mysema.luja.SessionReadOnlyException;
+import com.mysema.luja.mapping.domain.QMovie;
 import com.mysema.query.QueryException;
 import com.mysema.query.lucene.LuceneQuery;
 import com.mysema.query.types.path.NumberPath;
@@ -39,20 +39,21 @@ public class LuceneSessionFactoryTest {
     private Directory directory;
 
     private StringPath title;
-    
+
     private StringPath id;
 
     private NumberPath<Integer> year;
+
+    private QMovie path = new QMovie("doc");
 
     @Before
     public void before() throws IOException {
         directory = new RAMDirectory();
         sessionFactory = new LuceneSessionFactoryImpl(directory);
 
-        final QDocument entityPath = new QDocument("doc");
-        title = entityPath.title;
-        year = entityPath.year;
-        id = entityPath.id;
+        title = path.title;
+        year = path.year;
+        id = path.id;
     }
 
     @Test
@@ -68,33 +69,23 @@ public class LuceneSessionFactoryTest {
         assertEquals(1, results.size());
         assertEquals("Jurassic Park", results.get(0).getField("title").stringValue());
 
-        results = query.where(title.startsWith("Jurassic")).list();
-        assertEquals(1, results.size());
-        
-        //The case does not matter currently
-        results = query.where(title.startsWith("jurassic p")).list();
+        results = session.createQuery().where(title.startsWith("Jurassic")).list();
         assertEquals(1, results.size());
 
-        results = query.where(title.startsWithIgnoreCase("jurassic")).list();
+        results = session.createQuery().where(title.startsWith("Jurassic P")).list();
         assertEquals(1, results.size());
-        
-        results = query.where(id.eq("1")).list();
-        assertEquals(1, results.size());
-        
-        // FIXME This is not working, that's quite bad
-        // results = query.where(id.eq("2 A")).list();
-        // assertEquals(1, results.size());
 
-        // FIXME This is not working either
-        // results = query.where(id.eq("3_B")).list();
-        // assertEquals(1, results.size());
-        
-        query = session.createQuery();
-        long count = query.where(title.startsWith("Nummi")).count();
+        results = session.createQuery().where(id.eq("1")).list();
+        assertEquals(1, results.size());
+
+        results = session.createQuery().where(id.eq("2 A")).list();
+        assertEquals(1, results.size());
+
+        results = session.createQuery().where(id.eq("3_B")).list();
+        assertEquals(1, results.size());
+
+        long count = session.createQuery().where(title.startsWith("Nummi")).count();
         assertEquals(1, count);
-
-        // TODO Tästä tulee 0 eikä 2!!
-        // query.where(title.ne("AA")).count();
 
         session.close();
     }
@@ -196,7 +187,7 @@ public class LuceneSessionFactoryTest {
     }
 
     private class CountingSessionFactory extends LuceneSessionFactoryImpl {
-        
+
         List<Leasable> leasables = new ArrayList<Leasable>();
 
         Map<Leasable, Integer> leases = new HashMap<Leasable, Integer>();
@@ -230,9 +221,9 @@ public class LuceneSessionFactoryTest {
             releases.put(leasable, releases.get(leasable) + 1);
             super.release(leasable);
         }
-        
+
     }
-    
+
     @Test
     public void ResourcesAreReleased() throws IOException {
 
@@ -240,44 +231,44 @@ public class LuceneSessionFactoryTest {
 
         LuceneSession session = sessionFactory.openSession(false);
 
-        //Lease one writer
+        // Lease one writer
         session.beginAppend().addDocument(getDocument());
         session.flush();
 
-        //Lease searcher 1
+        // Lease searcher 1
         LuceneQuery query = session.createQuery();
         assertEquals(1, query.where(year.gt(1800)).count());
 
         session.beginAppend().addDocument(getDocument());
-        //Release searcher 1
+        // Release searcher 1
         session.flush();
 
-        //Lease searcher 2
+        // Lease searcher 2
         query = session.createQuery();
         assertEquals(2, query.where(year.gt(1800)).count());
 
-        //Release searcher 2 and writer
+        // Release searcher 2 and writer
         session.close();
 
         // Second session
         session = sessionFactory.openSession(true);
-        //Lease searcher 3
+        // Lease searcher 3
         query = session.createQuery();
         assertEquals(2, query.where(year.gt(1800)).count());
-        //Release searcher 3
+        // Release searcher 3
         session.close();
 
         assertEquals(4, sessionFactory.leasables.size());
         assertEquals(4, sessionFactory.leases.size());
         assertEquals(4, sessionFactory.releases.size());
 
-        //First one should be writer
+        // First one should be writer
         assertTrue(sessionFactory.leasables.get(0) instanceof FileLockingWriter);
         assertTrue(sessionFactory.leasables.get(1) instanceof LuceneSearcher);
         assertTrue(sessionFactory.leasables.get(2) instanceof LuceneSearcher);
         assertTrue(sessionFactory.leasables.get(3) instanceof LuceneSearcher);
-        
-        //The writer should be closed
+
+        // The writer should be closed
         assertEquals(1, (int) sessionFactory.leases.get(sessionFactory.leasables.get(0)));
         assertEquals(1, (int) sessionFactory.releases.get(sessionFactory.leasables.get(0)));
 
@@ -292,9 +283,8 @@ public class LuceneSessionFactoryTest {
         assertEquals(2, (int) sessionFactory.leases.get(sessionFactory.leasables.get(3)));
         assertEquals(1, (int) sessionFactory.releases.get(sessionFactory.leasables.get(3)));
 
-
     }
-    
+
     @Test
     public void StringPathCreationWorks() throws IOException {
         sessionFactory = new LuceneSessionFactoryImpl("target/stringpathtest");
@@ -304,8 +294,8 @@ public class LuceneSessionFactoryTest {
         assertEquals(1, session.createQuery().where(year.gt(1800)).count());
         session.close();
     }
-    
-    @Test(expected=QueryException.class)
+
+    @Test(expected = QueryException.class)
     public void GetsQueryException() throws IOException {
         String path = "target/exceptiontest";
         sessionFactory = new LuceneSessionFactoryImpl(path);
@@ -314,5 +304,5 @@ public class LuceneSessionFactoryTest {
         FileUtils.deleteDirectory(new File(path));
         session.close();
     }
-    
+
 }

@@ -7,6 +7,7 @@ import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Field.Index;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.joda.time.ReadableInstant;
 
 import com.mysema.luja.annotations.DateResolution;
@@ -17,7 +18,7 @@ import com.mysema.query.types.Path;
 
 /**
  * Lucene query serializer that understands Luja annotations and quides the
- * Lucene serialiser
+ * Lucene serialiser. Supports LocalDate, LocalDateTime, ReadableInstant and java.util.Date.
  * 
  * @author laimw
  * 
@@ -43,6 +44,8 @@ public class AnnotationSerializer extends LuceneSerializer {
             } else if (rightSide instanceof LocalDate) {
                 instant =
                     ((LocalDate) rightSide).toDateTimeAtStartOfDay(DateTimeZone.UTC).getMillis();
+            } else if (rightSide instanceof LocalDateTime) {
+                instant = ((LocalDateTime) rightSide).toDateTime(DateTimeZone.UTC).getMillis();
             } else if (rightSide instanceof ReadableInstant) {
                 instant = ((ReadableInstant) rightSide).getMillis();
             }
@@ -52,7 +55,7 @@ public class AnnotationSerializer extends LuceneSerializer {
 
             String timeString =
                 DateTools.timeToString(instant, resolutionAnnotation.value().asLuceneResolution());
-            //System.out.println("timeToString: " + timeString);
+            // System.out.println("timeToString: " + timeString);
             return new String[] { timeString };
 
         }
