@@ -11,6 +11,6 @@ import org.apache.lucene.document.Field.Index;
 @Target(ElementType.FIELD)
 public @interface Field {
 
-    Index index() default Index.ANALYZED;
+    Index index() default Index.NOT_ANALYZED;
     
 }

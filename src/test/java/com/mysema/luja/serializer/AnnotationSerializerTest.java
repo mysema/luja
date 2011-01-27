@@ -193,6 +193,9 @@ public class AnnotationSerializerTest {
         assertEquals(t1, results.get(0).getTime());
         assertEquals(t2, results.get(1).getTime());
         assertEquals(t3, results.get(2).getTime());
+        assertEquals(lt1, results.get(0).getLocalTime());
+        assertEquals(lt2, results.get(1).getLocalTime());
+        assertEquals(lt3, results.get(2).getLocalTime());
         assertEquals(jd1, results.get(0).getJavaDate());
         assertEquals(jd2, results.get(1).getJavaDate());
         assertEquals(jd3, results.get(2).getJavaDate());
