@@ -6,6 +6,7 @@ import com.mysema.luja.LuceneSession;
 import com.mysema.luja.LuceneWriter;
 import com.mysema.luja.SessionClosedException;
 import com.mysema.luja.SessionReadOnlyException;
+import com.mysema.luja.serializer.AnnotationSerializer;
 import com.mysema.query.QueryException;
 import com.mysema.query.lucene.LuceneQuery;
 import com.mysema.query.lucene.LuceneSerializer;
@@ -24,7 +25,7 @@ public class LuceneSessionImpl implements LuceneSession {
     @Nullable
     private FileLockingWriter writer;
 
-    private final LuceneSerializer serializer = new LuceneSerializer(true, true);
+    private final LuceneSerializer serializer = new AnnotationSerializer();
 
     public LuceneSessionImpl(LuceneSessionFactoryImpl sessionFactory, boolean readOnly) {
         this.sessionFactory = sessionFactory;

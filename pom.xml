@@ -12,14 +12,14 @@
   <artifactId>luja</artifactId>
   <name>Luja</name>
   <version>0.5.2-SNAPSHOT</version>
-  <description>Luja - Lucene/ORM</description>
+  <description>Luja - Lucene sessions with object document mapping</description>
   <packaging>jar</packaging>
 
   <properties>
-    <querydsl.version>2.1.0-beta2</querydsl.version>
+    <querydsl.version>2.1.0-beta2-SNAPSHOT</querydsl.version>
     <converters.version>0.1.1</converters.version>
   </properties>
-  
+
   <repositories>
     <repository>
       <id>mysema-releases</id>
@@ -44,12 +44,9 @@
       <artifactId>querydsl-apt</artifactId>
       <version>${querydsl.version}</version>
     </dependency>
-    <!--dependency>
-      <groupId>com.mysema.converters</groupId>
-      <artifactId>converters</artifactId>
-      <version>${converters.version}</version>
-    </dependency-->
-    
+    <!--dependency> <groupId>com.mysema.converters</groupId> <artifactId>converters</artifactId> <version>${converters.version}</version> 
+      </dependency -->
+
     <dependency>
       <groupId>org.apache.lucene</groupId>
       <artifactId>lucene-core</artifactId>
@@ -94,6 +91,36 @@
       <version>1.3.2</version>
       <scope>test</scope>
     </dependency>
+    
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>1.6</version>
+    </dependency>
+    
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.mysema.maven</groupId>
+        <artifactId>maven-apt-plugin</artifactId>
+        <version>1.0.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-process</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>target/generated-test-sources/java</outputDirectory>
+              <processor>com.mysema.query.apt.QuerydslAnnotationProcessor</processor>
+              <showWarnings>false</showWarnings>
+              <logOnlyOnError>true</logOnlyOnError>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
