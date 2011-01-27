@@ -1,10 +1,11 @@
 package com.mysema.luja.serializer;
 
-import java.lang.reflect.AnnotatedElement;
 import java.util.Date;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Field.Index;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.ReadableInstant;
 
@@ -28,49 +29,53 @@ public class AnnotationSerializer extends LuceneSerializer {
     }
 
     @Override
-    protected boolean isTokenized(Path<?> path) {
+    protected String[] convert(Path<?> leftSide, Object rightSide) {
+
+        String str = rightSide.toString();
+
+        if (leftSide.getAnnotatedElement().isAnnotationPresent(DateResolution.class)) {
+            DateResolution resolutionAnnotation =
+                leftSide.getAnnotatedElement().getAnnotation(DateResolution.class);
+
+            Long instant = null;
+            if (rightSide instanceof Date) {
+                instant = ((Date) rightSide).getTime();
+            } else if (rightSide instanceof LocalDate) {
+                instant =
+                    ((LocalDate) rightSide).toDateTimeAtStartOfDay(DateTimeZone.UTC).getMillis();
+            } else if (rightSide instanceof ReadableInstant) {
+                instant = ((ReadableInstant) rightSide).getMillis();
+            }
+            if (instant == null) {
+                throw new QueryException("Unsupported value type: " + rightSide.getClass());
+            }
+
+            String timeString =
+                DateTools.timeToString(instant, resolutionAnnotation.value().asLuceneResolution());
+            //System.out.println("timeToString: " + timeString);
+            return new String[] { timeString };
+
+        }
+
+        if (isAnalyzed(leftSide)) {
+            str = str.toLowerCase();
+            if (!str.equals("")) {
+                return StringUtils.split(str);
+            }
+        }
+
+        return new String[] { str };
+    }
+
+    private boolean isAnalyzed(Path<?> path) {
         if (path.getAnnotatedElement().isAnnotationPresent(Field.class)) {
             Field fieldAnnotation = path.getAnnotatedElement().getAnnotation(Field.class);
             if (fieldAnnotation.index() == Index.ANALYZED
                 || fieldAnnotation.index() == Index.ANALYZED_NO_NORMS) {
                 return true;
             }
-            return false;
         }
-        return super.isTokenized(path);
-    }
-
-    @Override
-    protected String normalize(Path<?> path, String s) {
-        // Do not normalize not tokenized path
-        if (!isTokenized(path)) {
-            return s;
-        }
-        return super.normalize(path, s);
-    }
-
-    @Override
-    protected String convert(Path<?> path, Object value) {
-        System.out.println("Här " + value);
-        if (path.getAnnotatedElement().isAnnotationPresent(DateResolution.class)) {
-            DateResolution resolutionAnnotation = path.getAnnotatedElement().getAnnotation(DateResolution.class);
-            
-            Long instant = null;
-            if (value instanceof Date) {
-                instant = ((Date)value).getTime();
-            } else if (value instanceof LocalDate) {
-                instant = ((LocalDate)value).toDateTimeAtStartOfDay().getMillis();
-            } else if (value instanceof ReadableInstant) {
-                instant = ((ReadableInstant)value).getMillis();
-            }
-            if (instant == null) {
-                throw new QueryException("Unsupported value type: " + value.getClass());
-            }
-            
-            return DateTools.timeToString(instant, resolutionAnnotation.value().asLuceneResolution());
-            
-        }
-        return super.convert(path, value);
+        return false;
     }
 
 }
