@@ -12,13 +12,15 @@ import org.joda.time.ReadableInstant;
 
 import com.mysema.luja.annotations.DateResolution;
 import com.mysema.luja.annotations.Field;
+import com.mysema.luja.annotations.Resolution;
 import com.mysema.query.QueryException;
 import com.mysema.query.lucene.LuceneSerializer;
 import com.mysema.query.types.Path;
 
 /**
  * Lucene query serializer that understands Luja annotations and quides the
- * Lucene serialiser. Supports LocalDate, LocalDateTime, ReadableInstant and java.util.Date.
+ * Lucene serialiser. Supports LocalDate, LocalDateTime, ReadableInstant and
+ * java.util.Date.
  * 
  * @author laimw
  * 
@@ -32,34 +34,14 @@ public class AnnotationSerializer extends LuceneSerializer {
     @Override
     protected String[] convert(Path<?> leftSide, Object rightSide) {
 
-        String str = rightSide.toString();
-
-        if (leftSide.getAnnotatedElement().isAnnotationPresent(DateResolution.class)) {
-            DateResolution resolutionAnnotation =
-                leftSide.getAnnotatedElement().getAnnotation(DateResolution.class);
-
-            Long instant = null;
-            if (rightSide instanceof Date) {
-                instant = ((Date) rightSide).getTime();
-            } else if (rightSide instanceof LocalDate) {
-                instant =
-                    ((LocalDate) rightSide).toDateTimeAtStartOfDay(DateTimeZone.UTC).getMillis();
-            } else if (rightSide instanceof LocalDateTime) {
-                instant = ((LocalDateTime) rightSide).toDateTime(DateTimeZone.UTC).getMillis();
-            } else if (rightSide instanceof ReadableInstant) {
-                instant = ((ReadableInstant) rightSide).getMillis();
-            }
-            if (instant == null) {
-                throw new QueryException("Unsupported value type: " + rightSide.getClass());
-            }
-
-            String timeString =
-                DateTools.timeToString(instant, resolutionAnnotation.value().asLuceneResolution());
-            // System.out.println("timeToString: " + timeString);
-            return new String[] { timeString };
-
+        String str = handleDates(leftSide, rightSide);
+        if (str != null) {
+            return new String[] { str };
         }
 
+        str = rightSide.toString();
+
+        //Split and lowercase analyzed cases
         if (isAnalyzed(leftSide)) {
             str = str.toLowerCase();
             if (!str.equals("")) {
@@ -68,6 +50,38 @@ public class AnnotationSerializer extends LuceneSerializer {
         }
 
         return new String[] { str };
+    }
+
+    private String handleDates(Path<?> leftSide, Object rightSide) {
+
+        Long instant = null;
+        Resolution resolution = null;
+
+        if (rightSide instanceof Date) {
+            instant = ((Date) rightSide).getTime();
+            resolution = Resolution.MILLISECOND;
+        } else if (rightSide instanceof LocalDate) {
+            instant = ((LocalDate) rightSide).toDateTimeAtStartOfDay(DateTimeZone.UTC).getMillis();
+            resolution = Resolution.DAY;
+        } else if (rightSide instanceof LocalDateTime) {
+            instant = ((LocalDateTime) rightSide).toDateTime(DateTimeZone.UTC).getMillis();
+            resolution = Resolution.MILLISECOND;
+        } else if (rightSide instanceof ReadableInstant) {
+            instant = ((ReadableInstant) rightSide).getMillis();
+            resolution = Resolution.MILLISECOND;
+        }
+
+        if (instant == null) {
+            return null;
+        }
+
+        if (leftSide.getAnnotatedElement().isAnnotationPresent(DateResolution.class)) {
+            resolution = leftSide.getAnnotatedElement().getAnnotation(DateResolution.class).value();
+
+        }
+
+        return DateTools.timeToString(instant, resolution.asLuceneResolution());
+
     }
 
     private boolean isAnalyzed(Path<?> path) {

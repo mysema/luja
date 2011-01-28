@@ -30,30 +30,26 @@ public class FieldAnnotated {
 
     @DateResolution(Resolution.MILLISECOND)
     private DateTime time;
-    
-    @DateResolution(Resolution.MILLISECOND)
+
     private LocalDateTime localTime;
 
     @DateResolution(Resolution.DAY)
     private Date javaDate;
 
-    @Field(index = Index.NOT_ANALYZED)
     private String code;
 
-    @Field(index = Index.NOT_ANALYZED)
     private String name;
 
     @Field(index = Index.ANALYZED)
     private String tokenized;
 
-    @Field(index = Index.NOT_ANALYZED)
     private Locale locale;
 
     public FieldAnnotated() {
     }
 
-    public FieldAnnotated(int intNumber, LocalDate date, DateTime time, LocalDateTime localTime, Date javaDate, String code,
-                          String name, String tokenized, Locale locale) {
+    public FieldAnnotated(int intNumber, LocalDate date, DateTime time, LocalDateTime localTime,
+                          Date javaDate, String code, String name, String tokenized, Locale locale) {
         this.intNumber = intNumber;
         this.date = date;
         this.time = time;
@@ -76,7 +72,8 @@ public class FieldAnnotated {
             time =
                 new DateTime(DateTools.stringToTime(document.getFieldable("time").stringValue()));
             localTime =
-                new LocalDateTime(DateTools.stringToTime(document.getFieldable("localTime").stringValue()));
+                new LocalDateTime(DateTools.stringToTime(document.getFieldable("localTime")
+                        .stringValue()), DateTimeZone.UTC);
             javaDate =
                 new Date(DateTools.stringToTime(document.getFieldable("javaDate").stringValue()));
         } catch (ParseException e) {
@@ -99,7 +96,7 @@ public class FieldAnnotated {
         document.add(new org.apache.lucene.document.Field("time", DateTools.timeToString(
                 time.getMillis(),
                 Resolution.MILLISECOND.asLuceneResolution()), Store.YES, Index.NOT_ANALYZED));
-        
+
         document.add(new org.apache.lucene.document.Field("localTime", DateTools.timeToString(
                 localTime.toDateTime(DateTimeZone.UTC).getMillis(),
                 Resolution.MILLISECOND.asLuceneResolution()), Store.YES, Index.NOT_ANALYZED));
@@ -182,6 +179,14 @@ public class FieldAnnotated {
 
     public void setLocale(Locale locale) {
         this.locale = locale;
+    }
+
+    public LocalDateTime getLocalTime() {
+        return localTime;
+    }
+
+    public void setLocalTime(LocalDateTime localTime) {
+        this.localTime = localTime;
     }
 
 }

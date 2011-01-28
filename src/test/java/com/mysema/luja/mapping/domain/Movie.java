@@ -8,14 +8,13 @@ import com.mysema.query.annotations.QueryEntity;
 @QueryEntity
 public class Movie {
 
-    @Field(index=Index.NOT_ANALYZED)
     private String id;
     
-    @Field(index=Index.NOT_ANALYZED)
     private String title;
     
     private String author;
-    
+
+    @Field(index=Index.ANALYZED)
     private String text;
     
     private int year;
