@@ -13,7 +13,6 @@ import org.joda.time.ReadableInstant;
 import com.mysema.luja.annotations.DateResolution;
 import com.mysema.luja.annotations.Field;
 import com.mysema.luja.annotations.Resolution;
-import com.mysema.query.QueryException;
 import com.mysema.query.lucene.LuceneSerializer;
 import com.mysema.query.types.Path;
 
