@@ -11,7 +11,7 @@
   <groupId>com.mysema.luja</groupId>
   <artifactId>luja</artifactId>
   <name>Luja</name>
-  <version>0.5.3-SNAPSHOT</version>
+  <version>0.5.4</version>
   <description>Luja - Lucene sessions with object document mapping</description>
   <packaging>jar</packaging>
 
