@@ -153,14 +153,7 @@ public final class MappedClass {
     void setMappedConstructor(@Nullable MappedConstructor constructor) {
         if (constructor == null && !clazz.isInterface() && !Modifier.isAbstract(clazz.getModifiers())) {
             throw new IllegalArgumentException("Default or mapped constructor required for " + clazz);
-        } else {
-            // TODO Is this needed?
-//            for (MappedPath path : constructor.getMappedArguments()) {
-//                if (path.getFirstPredicate() != null) {
-//                    mappedUIDs.add(path.getFirstPredicate());
-//                }
-//            }
-            
+        } else {            
             this.constructor = constructor;
         }
     }
