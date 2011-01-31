@@ -28,6 +28,8 @@ public class LuceneSessionFactoryImpl implements LuceneSessionFactory {
     private volatile LuceneSearcher searcher;
 
     private final AtomicBoolean creatingNew = new AtomicBoolean(false);
+    
+    private final Object firstTimeLock = new Object();
 
     private long defaultLockTimeout = 2000;
 
@@ -83,7 +85,7 @@ public class LuceneSessionFactoryImpl implements LuceneSessionFactory {
     public LuceneSearcher leaseSearcher() {
         try {
             if (searcher == null) {
-                synchronized (this) {
+                synchronized (firstTimeLock) {
                     if (searcher == null) {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Creating first searcher");
