@@ -1,6 +1,11 @@
 package com.mysema.luja.impl;
 
+import java.io.IOException;
+
 import javax.annotation.Nullable;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.mysema.luja.LuceneSession;
 import com.mysema.luja.LuceneWriter;
@@ -12,6 +17,8 @@ import com.mysema.query.lucene.LuceneQuery;
 import com.mysema.query.lucene.LuceneSerializer;
 
 public class LuceneSessionImpl implements LuceneSession {
+    
+    private static final Logger logger = LoggerFactory.getLogger(LuceneSessionHolder.class);
 
     private final boolean readOnly;
 
@@ -51,6 +58,11 @@ public class LuceneSessionImpl implements LuceneSession {
     }
 
     @Override
+    public boolean isClosed() {
+        return closed;
+    }
+    
+    @Override
     public void close() {
         checkClosed();
 
@@ -60,6 +72,7 @@ public class LuceneSessionImpl implements LuceneSession {
             try {
                 sessionFactory.release(searcher);
             } catch (QueryException e) {
+                logger.error("Searcher release failed", e);
                 searcherException = e;
             }
         }
@@ -75,6 +88,26 @@ public class LuceneSessionImpl implements LuceneSession {
         closed = true;
     }
 
+    @Override
+    public void rollback() {
+        checkClosed();
+
+        //TODO How to get all the exceptions out, not only the first one
+        try {
+            if (writer != null) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Rollbacking session");
+                }
+                writer.getIndexWriter().rollback();
+            }
+        } catch (IOException e) {
+            logger.error("Session rollback failed " + e);
+            throw new QueryException(e);
+        } finally {
+            close();
+        }
+    }
+    
     @Override
     public void flush() {
         checkClosed();

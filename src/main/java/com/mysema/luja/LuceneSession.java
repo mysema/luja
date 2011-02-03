@@ -52,5 +52,17 @@ public interface LuceneSession {
      * @throws SessionClosedException if session is closed
      */
     void close();
+    
+    /**
+     * Rollbacks all uncommited writes and closes resources
+     */
+    void rollback();
+    
+    /**
+     * Is session closed.
+     * 
+     * @return true if session is closed
+     */
+    boolean isClosed();
 
 }

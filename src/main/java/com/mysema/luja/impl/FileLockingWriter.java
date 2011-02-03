@@ -8,6 +8,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.IndexWriter.MaxFieldLength;
+import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.LockObtainFailedException;
 import org.apache.lucene.util.Version;
@@ -90,10 +91,19 @@ public class FileLockingWriter implements LuceneWriter, Leasable {
     }
 
     private void close() {
-        Directory directory = writer.getDirectory();
+        Directory directory = null;
+        try {
+            directory = writer.getDirectory();
+        } catch (AlreadyClosedException e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Writer is already closed");
+            }
+            return;
+        }
         try {
             // TODO What would be best way to control this?
             writer.optimize();
+
             writer.close();
             if (logger.isDebugEnabled()) {
                 logger.debug("Closed writer " + writer);

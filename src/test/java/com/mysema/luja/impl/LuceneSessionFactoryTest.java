@@ -61,7 +61,7 @@ public class LuceneSessionFactoryTest {
 
         addData(sessionFactory);
 
-        LuceneSession session = sessionFactory.openSession(true);
+        LuceneSession session = sessionFactory.openReadOnlySession();
         // Testing the queries work through session
         LuceneQuery query = session.createQuery();
 
@@ -92,7 +92,7 @@ public class LuceneSessionFactoryTest {
 
     @Test
     public void Flush() {
-        LuceneSession session = sessionFactory.openSession(false);
+        LuceneSession session = sessionFactory.openSession();
         createDocuments(session);
         session.flush();
 
@@ -126,41 +126,41 @@ public class LuceneSessionFactoryTest {
 
     @Test(expected = SessionReadOnlyException.class)
     public void Readonly() {
-        LuceneSession session = sessionFactory.openSession(true);
+        LuceneSession session = sessionFactory.openReadOnlySession();
         session.beginReset();
     }
 
     @Test(expected = SessionClosedException.class)
     public void SessionClosedCreate() {
-        LuceneSession session = sessionFactory.openSession(false);
+        LuceneSession session = sessionFactory.openSession();
         session.close();
         session.createQuery();
     }
 
     @Test(expected = SessionClosedException.class)
     public void SessionClosedAppend() {
-        LuceneSession session = sessionFactory.openSession(false);
+        LuceneSession session = sessionFactory.openSession();
         session.close();
         session.beginAppend();
     }
 
     @Test(expected = SessionClosedException.class)
     public void SessionClosedFlush() {
-        LuceneSession session = sessionFactory.openSession(false);
+        LuceneSession session = sessionFactory.openSession();
         session.close();
         session.flush();
     }
 
     @Test(expected = SessionClosedException.class)
     public void SessionClosedClosed() {
-        LuceneSession session = sessionFactory.openSession(false);
+        LuceneSession session = sessionFactory.openSession();
         session.close();
         session.close();
     }
 
     @Test(expected = SessionClosedException.class)
     public void SessionClosedOverwrite() {
-        LuceneSession session = sessionFactory.openSession(false);
+        LuceneSession session = sessionFactory.openSession();
         session.close();
         session.beginReset();
     }
@@ -169,11 +169,11 @@ public class LuceneSessionFactoryTest {
     public void Reset() {
         addData(sessionFactory);
 
-        LuceneSession session = sessionFactory.openSession(true);
+        LuceneSession session = sessionFactory.openReadOnlySession();
         assertEquals(4, session.createQuery().count());
         session.close();
 
-        session = sessionFactory.openSession(false);
+        session = sessionFactory.openSession();
 
         assertEquals(4, session.createQuery().count());
         session.beginReset().addDocument(getDocument());
@@ -181,7 +181,7 @@ public class LuceneSessionFactoryTest {
         assertEquals(1, session.createQuery().count());
         session.close();
 
-        session = sessionFactory.openSession(true);
+        session = sessionFactory.openReadOnlySession();
         assertEquals(1, session.createQuery().count());
         session.close();
     }
@@ -229,7 +229,7 @@ public class LuceneSessionFactoryTest {
 
         CountingSessionFactory sessionFactory = new CountingSessionFactory(directory);
 
-        LuceneSession session = sessionFactory.openSession(false);
+        LuceneSession session = sessionFactory.openSession();
 
         // Lease one writer
         session.beginAppend().addDocument(getDocument());
@@ -288,7 +288,7 @@ public class LuceneSessionFactoryTest {
     @Test
     public void StringPathCreationWorks() throws IOException {
         sessionFactory = new LuceneSessionFactoryImpl("target/stringpathtest");
-        LuceneSession session = sessionFactory.openSession(false);
+        LuceneSession session = sessionFactory.openSession();
         session.beginReset().addDocument(getDocument());
         session.flush();
         assertEquals(1, session.createQuery().where(year.gt(1800)).count());
@@ -299,10 +299,36 @@ public class LuceneSessionFactoryTest {
     public void GetsQueryException() throws IOException {
         String path = "target/exceptiontest";
         sessionFactory = new LuceneSessionFactoryImpl(path);
-        LuceneSession session = sessionFactory.openSession(false);
+        LuceneSession session = sessionFactory.openSession();
         session.beginAppend().addDocument(getDocument());
         FileUtils.deleteDirectory(new File(path));
         session.close();
+    }
+    
+    @Test
+    public void BasicRollback() {
+        LuceneSession session = sessionFactory.openSession();
+        session.beginAppend().addDocument(getDocument());
+        session.close();
+        
+        assertDocumentCount(1, sessionFactory);
+        
+        session = sessionFactory.openSession();
+        session.beginAppend().addDocument(getDocument());
+        session.rollback();
+        assertEquals(true, session.isClosed());
+        
+        assertDocumentCount(1, sessionFactory);
+        
+    }
+
+    private void assertDocumentCount(int count, LuceneSessionFactory sf) {
+        LuceneSession session = sf.openReadOnlySession();
+        try {
+            assertEquals(count, session.createQuery().count());
+        } finally {
+            session.close();
+        }
     }
 
 }
