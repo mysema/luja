@@ -74,6 +74,17 @@ public class LuceneSessionFactoryImpl implements LuceneSessionFactory {
     public LuceneSession openSession(boolean readOnly) {
         return new LuceneSessionImpl(this, readOnly);
     }
+    
+    @Override
+    public LuceneSession openReadOnlySession() {
+        return new LuceneSessionImpl(this, true);
+    }
+    
+    @Override
+    public LuceneSession openSession() {
+        return new LuceneSessionImpl(this, false);
+    }
+    
 
     public FileLockingWriter leaseWriter(boolean createNew) {
         FileLockingWriter writer =

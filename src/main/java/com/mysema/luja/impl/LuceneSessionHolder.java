@@ -70,15 +70,32 @@ public final class LuceneSessionHolder {
     }
 
     public static void release() {
-        scope.get().referenceCount--;
+        release(false);
+    }
+    
+    private static void release(boolean rollback) {
+        
+        if (rollback) {
+            //Immediately release, if nested, the upper methods will get
+            //session closed exception if they try to use session after this
+            scope.get().referenceCount = 0;
+        } else {
+            scope.get().referenceCount--;
+        }
+
         if (scope.get().referenceCount == 0) {
             try {
                 for (LuceneSession session : getSessions().values()) {
                     try {
-                        //System.out.println("session holder close");
-                        session.close();
+                        if (rollback) {
+                            session.rollback();
+                        } else {
+                            // System.out.println("session holder close");
+                            session.close();
+                        }
                     } catch (QueryException e) {
-                        //System.out.println("failed to close session " + e.getCause().getMessage());
+                        // System.out.println("failed to close session " +
+                        // e.getCause().getMessage());
                         logger.error("Failed to close session", e);
                     }
                 }
@@ -99,6 +116,10 @@ public final class LuceneSessionHolder {
     public static boolean getReadOnly() {
         Assert.notNull(scope.get(), "No transactional scope");
         return scope.get().readOnly;
+    }
+
+    public static void rollbackAndRelease() {
+        release(true); 
     }
 
 }

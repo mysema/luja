@@ -33,6 +33,10 @@ public class ThreadingTest {
     private LuceneSessionFactoryImpl sessionFactory;
 
     private TestDao dao;
+    
+    private static class TestRuntimeException extends RuntimeException {
+        private static final long serialVersionUID = 0L;
+    }
 
     private static class Task implements Callable<Throwable> {
 
@@ -57,6 +61,9 @@ public class ThreadingTest {
                 if (action.equals("reset")) {
                     dao.reset();
                 }
+                if (action.equals("exception")) {
+                    dao.exception();
+                }
                 return null;
             } catch (Throwable t) {
                 return t;
@@ -67,6 +74,8 @@ public class ThreadingTest {
 
     private static interface TestDao {
         void write();
+        
+        void exception();
 
         void reset();
 
@@ -88,7 +97,7 @@ public class ThreadingTest {
         private final Object readLock = new Object();
 
         private final Object resetLock = new Object();
-
+        
         TestDaoImpl(LuceneSessionFactory sessionFactory) {
             this.sessionFactory = sessionFactory;
         }
@@ -113,6 +122,17 @@ public class ThreadingTest {
                 counter += numOfDocs;
             }
             System.out.println("Added " + numOfDocs + " documents ");
+        }
+        
+        @Override
+        @LuceneTransactional
+        public void exception() {
+            LuceneSession session = sessionFactory.getCurrentSession();
+            LuceneWriter writer = session.beginAppend();
+            writer.addDocument(QueryTestHelper.getDocument());
+            
+            System.out.println("About to throw RuntimeException");
+            throw new TestRuntimeException();
         }
 
         @Override
@@ -222,7 +242,7 @@ public class ThreadingTest {
                 Throwable error = tasks.get(taskReadyIndex).get();
                 tasks.remove(taskReadyIndex);
                 numOfRequests++;
-                if (error != null) {
+                if (error != null && !(error instanceof TestRuntimeException)) {
                     errors.add(error);
                 }
 
@@ -247,7 +267,7 @@ public class ThreadingTest {
 
         sessionFactory.setDefaultLockTimeout(5000);
 
-        ExecutorService threads = Executors.newFixedThreadPool(3);
+        ExecutorService threads = Executors.newFixedThreadPool(4);
 
         int simulationtimeInSecs = 60;
 
@@ -262,29 +282,38 @@ public class ThreadingTest {
         // Resetters
         TaskRunner resetRunner = new TaskRunner("reset", 1, 2, 15, dao);
         Future<List<Throwable>> resets = threads.submit(resetRunner);
+        
+        //Exceptions
+        TaskRunner exceptionsRunner = new TaskRunner("exception", 2, 3, 10, dao);
+        Future<List<Throwable>> exceptions = threads.submit(exceptionsRunner);
 
         Thread.sleep(simulationtimeInSecs * 1000);
 
         readRunner.stop = true;
         writeRunner.stop = true;
         resetRunner.stop = true;
+        exceptionsRunner.stop = true;
 
         List<Throwable> readErrors = reads.get();
         List<Throwable> writeErrors = writes.get();
         List<Throwable> resetErrors = resets.get();
+        List<Throwable> exceptionErrors = exceptions.get();
         threads.shutdown();
 
         System.out.println("Read errors: " + readErrors.size());
         System.out.println("Write errors: " + writeErrors.size());
         System.out.println("Reset errors: " + resetErrors.size());
-
+        System.out.println("Exceptions errors: " + exceptionErrors.size());
+        
         printErrors(readErrors);
         printErrors(writeErrors);
         printErrors(resetErrors);
+        printErrors(exceptionErrors);
 
         assertEquals("Read errors", 0, readErrors.size());
         assertEquals("Write errors", 0, writeErrors.size());
         assertEquals("Reset errors", 0, resetErrors.size());
+        assertEquals("Exception errors", 0, exceptionErrors.size());
 
         //
         // Map<Class<?>, Integer> errorTypes = new HashMap<Class<?>, Integer>();
