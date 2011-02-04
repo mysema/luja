@@ -151,10 +151,11 @@ public class LuceneSessionFactoryTest {
         session.commit();
     }
 
-    @Test(expected = SessionClosedException.class)
+    @Test
     public void SessionClosedClosed() {
         LuceneSession session = sessionFactory.openSession();
         session.close();
+        //It's fine to call close many times
         session.close();
     }
 

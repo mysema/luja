@@ -50,9 +50,9 @@ public interface LuceneSession {
     /**
      * Closes the session. All writes are committed and resources are cleared.
      * This should always be called in finally block if this session was created
-     * explicitly by calling session factory's openSession
+     * explicitly by calling session factory's openSession.
      * 
-     * @throws SessionClosedException if session is closed
+     * If session is already closed, does nothing.
      */
     void close();
     
