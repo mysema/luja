@@ -94,7 +94,7 @@ public class LuceneSessionFactoryTest {
     public void Flush() {
         LuceneSession session = sessionFactory.openSession();
         createDocuments(session);
-        session.flush();
+        session.commit();
 
         // Now we will see the three documents
         LuceneQuery query = session.createQuery();
@@ -107,7 +107,7 @@ public class LuceneSessionFactoryTest {
         query = session.createQuery();
         assertEquals(4, query.where(year.gt(1800)).count());
 
-        session.flush();
+        session.commit();
 
         // This will see the addition
         LuceneQuery query1 = session.createQuery();
@@ -148,7 +148,7 @@ public class LuceneSessionFactoryTest {
     public void SessionClosedFlush() {
         LuceneSession session = sessionFactory.openSession();
         session.close();
-        session.flush();
+        session.commit();
     }
 
     @Test(expected = SessionClosedException.class)
@@ -177,7 +177,7 @@ public class LuceneSessionFactoryTest {
 
         assertEquals(4, session.createQuery().count());
         session.beginReset().addDocument(getDocument());
-        session.flush();
+        session.commit();
         assertEquals(1, session.createQuery().count());
         session.close();
 
@@ -233,7 +233,7 @@ public class LuceneSessionFactoryTest {
 
         // Lease one writer
         session.beginAppend().addDocument(getDocument());
-        session.flush();
+        session.commit();
 
         // Lease searcher 1
         LuceneQuery query = session.createQuery();
@@ -241,7 +241,7 @@ public class LuceneSessionFactoryTest {
 
         session.beginAppend().addDocument(getDocument());
         // Release searcher 1
-        session.flush();
+        session.commit();
 
         // Lease searcher 2
         query = session.createQuery();
@@ -290,7 +290,7 @@ public class LuceneSessionFactoryTest {
         sessionFactory = new LuceneSessionFactoryImpl("target/stringpathtest");
         LuceneSession session = sessionFactory.openSession();
         session.beginReset().addDocument(getDocument());
-        session.flush();
+        session.commit();
         assertEquals(1, session.createQuery().where(year.gt(1800)).count());
         session.close();
     }

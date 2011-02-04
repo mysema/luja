@@ -37,11 +37,14 @@ public interface LuceneSession {
     LuceneWriter beginReset();
 
     /**
-     * Flushes all data writer has changed. Queries created after this will see
+     * Commits all data writer has changed. Queries created after this will see
      * the new index. Queries created before, will see the old snapshot.
      * 
      * @throws SessionClosedException if session is closed
      */
+    void commit();
+    
+    @Deprecated
     void flush();
 
     /**
@@ -54,7 +57,9 @@ public interface LuceneSession {
     void close();
     
     /**
-     * Rollbacks all uncommited writes and closes resources
+     * Rollbacks all uncommited writes and closes resources.
+     * 
+     * All session usage after rollback will throw SessionClosedException.
      */
     void rollback();
     

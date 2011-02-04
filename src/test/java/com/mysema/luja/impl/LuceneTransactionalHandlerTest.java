@@ -272,7 +272,7 @@ public class LuceneTransactionalHandlerTest {
 
             // This verifies that the we are using the same session opened in
             // the caller scope
-            session.flush();
+            session.commit();
 
             query = session.createQuery();
             assertEquals(1, query.where(path.title.eq("nested")).count());

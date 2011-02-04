@@ -109,7 +109,7 @@ public class LuceneSessionImpl implements LuceneSession {
     }
     
     @Override
-    public void flush() {
+    public void commit() {
         checkClosed();
 
         if (writer == null) {
@@ -123,6 +123,11 @@ public class LuceneSessionImpl implements LuceneSession {
         }
         searcher = null;
 
+    }
+    
+    @Override
+    public void flush() {
+        commit();
     }
 
     private LuceneSearcher getSearcher() {
