@@ -64,7 +64,9 @@ public class LuceneSessionImpl implements LuceneSession {
     
     @Override
     public void close() {
-        checkClosed();
+        if (closed) {
+            return;
+        }
 
         QueryException searcherException = null;
 
