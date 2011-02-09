@@ -1,6 +1,7 @@
 package com.mysema.luja.impl;
 
 import java.io.IOException;
+import java.util.Locale;
 
 import javax.annotation.Nullable;
 
@@ -32,11 +33,12 @@ public class LuceneSessionImpl implements LuceneSession {
     @Nullable
     private FileLockingWriter writer;
 
-    private final LuceneSerializer serializer = new AnnotationSerializer();
+    private final LuceneSerializer serializer;
 
-    public LuceneSessionImpl(LuceneSessionFactoryImpl sessionFactory, boolean readOnly) {
+    public LuceneSessionImpl(LuceneSessionFactoryImpl sessionFactory, boolean readOnly, Locale sortLocale) {
         this.sessionFactory = sessionFactory;
         this.readOnly = readOnly;
+        this.serializer = new AnnotationSerializer(sortLocale);
     }
 
     @Override

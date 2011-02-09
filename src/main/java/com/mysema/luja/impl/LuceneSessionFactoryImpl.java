@@ -2,6 +2,7 @@ package com.mysema.luja.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
@@ -32,6 +33,8 @@ public class LuceneSessionFactoryImpl implements LuceneSessionFactory {
     private final Object firstTimeLock = new Object();
 
     private long defaultLockTimeout = 2000;
+    
+    private Locale sortLocale = Locale.getDefault();
 
     public LuceneSessionFactoryImpl(String indexPath) throws IOException {
         File folder = new File(indexPath);
@@ -72,17 +75,17 @@ public class LuceneSessionFactoryImpl implements LuceneSessionFactory {
 
     @Override
     public LuceneSession openSession(boolean readOnly) {
-        return new LuceneSessionImpl(this, readOnly);
+        return new LuceneSessionImpl(this, readOnly, sortLocale);
     }
     
     @Override
     public LuceneSession openReadOnlySession() {
-        return new LuceneSessionImpl(this, true);
+        return new LuceneSessionImpl(this, true, sortLocale);
     }
     
     @Override
     public LuceneSession openSession() {
-        return new LuceneSessionImpl(this, false);
+        return new LuceneSessionImpl(this, false, sortLocale);
     }
     
 
@@ -161,6 +164,16 @@ public class LuceneSessionFactoryImpl implements LuceneSessionFactory {
         this.defaultLockTimeout = defaultLockTimeout;
     }
 
+    /**
+     * Sets the sorting locale used by this session factory. The default sort
+     * locale is the jvm's default locale.
+     * 
+     * @param sortLocale
+     */
+    public void setSortLocale(Locale sortLocale) {
+        this.sortLocale = sortLocale;
+    }
+ 
     public <T> Transformer<Document, T> getDocumentToObjectTransformer(Class<T> clazz) {
         //Luodaan transformer laiskasti, säilytetään tallessa
         //Tsek morphia

@@ -48,6 +48,11 @@ public class FieldAnnotated {
     public FieldAnnotated() {
     }
 
+    public FieldAnnotated(int id, String name) {
+        this(id, new LocalDate(), new DateTime(), new LocalDateTime(), new Date(), "", name, "",
+             Locale.ENGLISH);
+    }
+
     public FieldAnnotated(int intNumber, LocalDate date, DateTime time, LocalDateTime localTime,
                           Date javaDate, String code, String name, String tokenized, Locale locale) {
         this.intNumber = intNumber;
