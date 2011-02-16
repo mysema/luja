@@ -3,15 +3,13 @@ package com.mysema.luja.impl;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.index.IndexWriter.MaxFieldLength;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.LockObtainFailedException;
-import org.apache.lucene.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +33,8 @@ public class FileLockingWriter implements LuceneWriter, Leasable {
             if (!create) {
                 try {
                     writer =
-                        new IndexWriter(directory, new StandardAnalyzer(Version.LUCENE_30), false,
-                                        MaxFieldLength.LIMITED);
+                        new IndexWriter(directory, sessionFactory.getAnalyzerFactory()
+                                .newAnalyzer(), false, MaxFieldLength.LIMITED);
 
                 } catch (FileNotFoundException e) {
                     // Convience to create a new index if it's not already
@@ -46,8 +44,8 @@ public class FileLockingWriter implements LuceneWriter, Leasable {
             }
             if (create) {
                 writer =
-                    new IndexWriter(directory, new StandardAnalyzer(Version.LUCENE_30), true,
-                                    MaxFieldLength.LIMITED);
+                    new IndexWriter(directory, sessionFactory.getAnalyzerFactory().newAnalyzer(),
+                                    true, MaxFieldLength.LIMITED);
             }
 
         } catch (LockObtainFailedException e) {

@@ -14,6 +14,7 @@ import org.apache.lucene.store.SimpleFSDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mysema.luja.AnalyzerFactory;
 import com.mysema.luja.LuceneSession;
 import com.mysema.luja.LuceneSessionFactory;
 import com.mysema.luja.SessionNotBoundException;
@@ -35,6 +36,8 @@ public class LuceneSessionFactoryImpl implements LuceneSessionFactory {
     private long defaultLockTimeout = 2000;
     
     private Locale sortLocale = Locale.getDefault();
+    
+    private AnalyzerFactory analyzerFactory = new StandardAnalyzerFactory();
 
     public LuceneSessionFactoryImpl(String indexPath) throws IOException {
         File folder = new File(indexPath);
@@ -185,6 +188,14 @@ public class LuceneSessionFactoryImpl implements LuceneSessionFactory {
     public Document transformToDocument(Object object) {
         // TODO Auto-generated method stub
         return null;
+    }
+    
+    public void setAnalyzerFactory(AnalyzerFactory analyzerFactory) {
+        this.analyzerFactory = analyzerFactory;
+    }
+    
+    public AnalyzerFactory getAnalyzerFactory() {
+        return analyzerFactory;
     }
 
 }
