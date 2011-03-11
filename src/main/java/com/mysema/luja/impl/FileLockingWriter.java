@@ -79,6 +79,16 @@ public class FileLockingWriter implements LuceneWriter, Leasable {
             throw new QueryException(e);
         }
     }
+    
+    @Override
+    public LuceneWriter updateDocument(Term term, Document doc) {
+        try {
+            writer.updateDocument(term, doc);
+            return this;
+        } catch (IOException e) {
+            throw new QueryException(e);
+        }
+    }
 
     public void commit() {
         try {

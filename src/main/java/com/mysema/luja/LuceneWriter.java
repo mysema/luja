@@ -11,6 +11,8 @@ import org.apache.lucene.index.Term;
 public interface LuceneWriter {
 
     LuceneWriter addDocument(Document doc);
+    
+    LuceneWriter updateDocument(Term term, Document doc);
         
     LuceneWriter deleteDocuments(Term term);
     
