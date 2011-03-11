@@ -11,12 +11,12 @@
   <groupId>com.mysema.luja</groupId>
   <artifactId>luja</artifactId>
   <name>Luja</name>
-  <version>0.5.9-SNAPSHOT</version>
+  <version>0.5.10</version>
   <description>Luja - Lucene sessions with object document mapping</description>
   <packaging>jar</packaging>
 
   <properties>
-    <querydsl.version>2.1.1</querydsl.version>
+    <querydsl.version>2.1.2</querydsl.version>
     <converters.version>0.1.1</converters.version>
   </properties>
 
