@@ -28,25 +28,32 @@ public class LuceneTransactionHandler {
         boolean rollback = false;
         try {
             return joinPoint.proceed();
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
 
             rollback = isRollback(annotation, e);
 
             throw e;
         } finally {
-            if (logger.isTraceEnabled()) {
-                logger.trace("LuceneSessionHolder.release");
-            }
             if (!rollback) {
+                
+                if (logger.isTraceEnabled()) {
+                    logger.trace("LuceneSessionHolder.release");
+                }
+                
                 LuceneSessionHolder.release();
             }
             else {
+                
+                if (logger.isTraceEnabled()) {
+                    logger.trace("LuceneSessionHolder.rollbackAndRelease");
+                }
+                
                 LuceneSessionHolder.rollbackAndRelease();
             }
         }
     }
 
-    private boolean isRollback(LuceneTransactional annotation, RuntimeException exception) {
+    private boolean isRollback(LuceneTransactional annotation, Exception exception) {
         // TODO Add annotation support for exceptions ala Hibernate
 
         // Filter runtime exceptions which are not valid for rollback
@@ -56,7 +63,7 @@ public class LuceneTransactionHandler {
             return false;
         }
         
-        logger.error("Runtime exception from transactional method, rollbacking", exception);
+        logger.error("Exception from transactional method, rollbacking", exception);
         return true;
     }
 

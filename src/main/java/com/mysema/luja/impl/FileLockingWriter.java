@@ -49,8 +49,7 @@ public class FileLockingWriter implements LuceneWriter, Leasable {
             }
 
         } catch (LockObtainFailedException e) {
-            logger.error("Got lock timeout ");
-            throw new WriteLockObtainFailedException(e);
+            throw new WriteLockObtainFailedException("Got lock timeout", e);
         } catch (IOException e) {
             throw new QueryException(e);
         }
@@ -117,16 +116,16 @@ public class FileLockingWriter implements LuceneWriter, Leasable {
                 logger.debug("Closed writer " + writer);
             }
         } catch (IOException e) {
-            logger.error("Writer close failed", e);
             try {
                 if (IndexWriter.isLocked(directory)) {
                     IndexWriter.unlock(directory);
                 }
             } catch (IOException e1) {
-                logger.error("Lock release failed", e1);
-                throw new QueryException(e1);
+                //Log this error, as otherwise we would loose IOException on close
+                logger.error("Writer close failed", e);
+                throw new QueryException("Lock release failed", e1);
             }
-            throw new QueryException(e);
+            throw new QueryException("Writer close failed", e);
         }
     }
 

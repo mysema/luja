@@ -90,7 +90,7 @@ public final class LuceneSessionHolder {
                         if (rollback) {
                             session.rollback();
                         } else {
-                            // System.out.println("session holder close");
+                            //System.out.println("session holder close");
                             session.close();
                         }
                     } catch (QueryException e) {

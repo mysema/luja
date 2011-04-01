@@ -120,8 +120,9 @@ public class LuceneTransactionalHandlerTest {
         assertEquals(0, q.where(path.title.eq("rollback")).count());
     }
     
+    
     @Test
-    public void CheckedExceptionDoesNotCauseRollback() {
+    public void CheckedExceptionCauseRollback() {
         try {
             testDao.throwsCheckedException();
         } catch (Exception e) {
@@ -129,7 +130,7 @@ public class LuceneTransactionalHandlerTest {
         }
 
         LuceneQuery q = sessionFactory.openReadOnlySession().createQuery();
-        assertEquals(1, q.where(path.title.eq("rollback-checked")).count());
+        assertEquals(0, q.where(path.title.eq("rollback-checked")).count());
     }
     
 

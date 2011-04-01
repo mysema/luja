@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.collections15.Transformer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
+import org.apache.lucene.store.FSDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +46,7 @@ public class LuceneSessionFactoryImpl implements LuceneSessionFactory {
         }
 
         try {
-            directory = new SimpleFSDirectory(folder);
+            directory = FSDirectory.open(folder);
         } catch (IOException e) {
             logger.error("Could not create lucene directory to " + folder.getAbsolutePath());
             throw e;
