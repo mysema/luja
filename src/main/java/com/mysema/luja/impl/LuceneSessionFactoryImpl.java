@@ -7,8 +7,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.collections15.Transformer;
-import org.apache.lucene.document.Document;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.slf4j.Logger;
@@ -177,18 +175,18 @@ public class LuceneSessionFactoryImpl implements LuceneSessionFactory {
         this.sortLocale = sortLocale;
     }
  
-    public <T> Transformer<Document, T> getDocumentToObjectTransformer(Class<T> clazz) {
-        //Luodaan transformer laiskasti, säilytetään tallessa
-        //Tsek morphia
-        
-        //Convertterit rdfbeanistä, uusi moduuli?
-        return null;
-    }
-
-    public Document transformToDocument(Object object) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+//    public <T> Transformer<Document, T> getDocumentToObjectTransformer(Class<T> clazz) {
+//        //Luodaan transformer laiskasti, säilytetään tallessa
+//        //Tsek morphia
+//        
+//        //Convertterit rdfbeanistä, uusi moduuli?
+//        return null;
+//    }
+//
+//    public Document transformToDocument(Object object) {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
     
     public void setAnalyzerFactory(AnalyzerFactory analyzerFactory) {
         this.analyzerFactory = analyzerFactory;
