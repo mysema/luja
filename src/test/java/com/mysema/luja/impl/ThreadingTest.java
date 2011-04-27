@@ -262,14 +262,14 @@ public class ThreadingTest {
     }
 
     @Test
-    @Ignore
+    //@Ignore
     public void Simultaneous() throws InterruptedException, ExecutionException {
 
         sessionFactory.setDefaultLockTimeout(5000);
 
         ExecutorService threads = Executors.newFixedThreadPool(4);
 
-        int simulationtimeInSecs = 60;
+        int simulationtimeInSecs = 90;
 
         // Readers
         TaskRunner readRunner = new TaskRunner("read", 100, 120, simulationtimeInSecs / 1000, dao);

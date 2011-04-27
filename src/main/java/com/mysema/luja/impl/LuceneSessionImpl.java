@@ -116,11 +116,9 @@ public class LuceneSessionImpl implements LuceneSession {
     public void commit() {
         checkClosed();
 
-        if (writer == null) {
-            return;
+        if (writer != null) {
+        	writer.commit();
         }
-
-        writer.commit();
 
         if (searcher != null) {
             sessionFactory.release(searcher);

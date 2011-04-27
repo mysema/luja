@@ -134,8 +134,9 @@ public class FileLockingWriter implements LuceneWriter, Leasable {
     }
 
     @Override
-    public void lease() {
-        // This is no-op for writer as we always create new
+    public boolean lease() {
+    	// This is no-op for writer as we always create new
+    	return true;
     }
 
     @Override

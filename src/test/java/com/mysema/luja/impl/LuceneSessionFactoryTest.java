@@ -5,7 +5,7 @@ import static com.mysema.luja.QueryTestHelper.createDocument;
 import static com.mysema.luja.QueryTestHelper.createDocuments;
 import static com.mysema.luja.QueryTestHelper.getDocument;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +16,8 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.junit.Before;
@@ -96,7 +98,7 @@ public class LuceneSessionFactoryTest {
         createDocuments(session);
         session.commit();
 
-        // Now we will see the three documents
+        // Now we will see the four documents
         LuceneQuery query = session.createQuery();
         assertEquals(4, query.where(year.gt(1800)).count());
 
@@ -113,8 +115,13 @@ public class LuceneSessionFactoryTest {
         LuceneQuery query1 = session.createQuery();
         assertEquals(5, query1.where(year.gt(1800)).count());
 
-        // The old query still sees the same 3
-        assertEquals(4, query.count());
+        // The old query throws exception as it's closed on commit
+        try {
+        	query.count();
+        	fail("Query is closed and there should have been exception");
+        } catch(AlreadyClosedException e) {
+        	//Nothing
+        }
 
         session.close();
     }
@@ -165,6 +172,25 @@ public class LuceneSessionFactoryTest {
         session.close();
         session.beginReset();
     }
+    
+   @Test(expected = AlreadyClosedException.class)
+   public void PreviousQueryIsClosedAfterCommit() {
+	   addData(sessionFactory);
+	   
+	   LuceneSession session = sessionFactory.openSession();
+	   //make change, that next commit invalidates current readers
+	   createDocuments(session);
+	   LuceneQuery query1 = session.createQuery();
+	   assertEquals(4, query1.count());
+       
+	   session.commit();
+       
+       //This will close the query1
+       session.createQuery();
+       
+       //IndexReader in query1 should be closed now
+       query1.where(year.gt(1800)).count();
+   }
 
     @Test
     public void Reset() {
@@ -200,7 +226,11 @@ public class LuceneSessionFactoryTest {
         }
 
         @Override
-        public void lease(Leasable leasable) {
+        public boolean lease(Leasable leasable) {
+        	boolean success = super.lease(leasable);
+        	//Don't count failed leases
+        	if (!success) return success;
+        	
             if (!leasables.contains(leasable)) {
                 leasables.add(leasable);
             }
@@ -208,7 +238,7 @@ public class LuceneSessionFactoryTest {
                 leases.put(leasable, 0);
             }
             leases.put(leasable, leases.get(leasable) + 1);
-            super.lease(leasable);
+            return success;
         }
 
         @Override
@@ -276,9 +306,11 @@ public class LuceneSessionFactoryTest {
         // First and second searchers should be released totally
         assertEquals(2, (int) sessionFactory.leases.get(sessionFactory.leasables.get(1)));
         assertEquals(2, (int) sessionFactory.releases.get(sessionFactory.leasables.get(1)));
+        assertIndexReaderIsClosed(sessionFactory.leasables.get(1));
 
         assertEquals(2, (int) sessionFactory.leases.get(sessionFactory.leasables.get(2)));
         assertEquals(2, (int) sessionFactory.releases.get(sessionFactory.leasables.get(2)));
+        assertIndexReaderIsClosed(sessionFactory.leasables.get(2));
 
         // Third searcher leaves it as current
         assertEquals(2, (int) sessionFactory.leases.get(sessionFactory.leasables.get(3)));
@@ -286,7 +318,19 @@ public class LuceneSessionFactoryTest {
 
     }
 
-    @Test
+	private void assertIndexReaderIsClosed(Leasable leasable)
+			throws IOException {
+
+		IndexSearcher searcher = ((LuceneSearcher) leasable).getIndexSearcer();
+		try {
+			searcher.getIndexReader().flush();
+			fail("Indexreader was not closed");
+		} catch (AlreadyClosedException e) {
+			// Nothing
+		}
+	}
+
+	@Test
     public void StringPathCreationWorks() throws IOException {
         sessionFactory = new LuceneSessionFactoryImpl("target/stringpathtest");
         LuceneSession session = sessionFactory.openSession();
