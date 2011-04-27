@@ -262,7 +262,7 @@ public class ThreadingTest {
     }
 
     @Test
-    //@Ignore
+    @Ignore
     public void Simultaneous() throws InterruptedException, ExecutionException {
 
         sessionFactory.setDefaultLockTimeout(5000);
