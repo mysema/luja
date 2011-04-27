@@ -63,7 +63,7 @@ public class LuceneSearcher implements Leasable {
 	@Override
 	public boolean lease() {
 		if (closed.get()) {
-			System.out.println("Lease failed as searcher already closed");
+			//System.out.println("Lease failed as searcher already closed");
 			return false;
 		}
 		//System.out.println("lease for " + this);
