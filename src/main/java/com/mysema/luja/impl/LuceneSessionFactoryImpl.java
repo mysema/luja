@@ -107,7 +107,7 @@ public class LuceneSessionFactoryImpl implements LuceneSessionFactory {
 		try {
 
 			long start = 0;
-			boolean leaseFailed = false;
+			boolean leased = true;
 			
 			do {
 				// Creating first searcher instance in synchronized way
@@ -124,11 +124,11 @@ public class LuceneSessionFactoryImpl implements LuceneSessionFactory {
 				}
 
 				//Start counting timeout if we are on the lease failed loop
-				if (leaseFailed && start == 0) {
+				if (!leased && start == 0) {
 					start = System.currentTimeMillis();
 				}
 				//Timeout from lease failed loop
-				if (leaseFailed && start + closedReaderTimeout < System.currentTimeMillis()) {
+				if (!leased && start + closedReaderTimeout < System.currentTimeMillis()) {
 					throw new QueryException(
 							"Timed out while waiting the searcher lease");
 				}
@@ -154,7 +154,10 @@ public class LuceneSessionFactoryImpl implements LuceneSessionFactory {
 				// Try this in loop as we might be in the corner case
 				// where actually searcher is being released and we want valid
 				// searcher from here
-			} while (!lease(searcher));
+				leased = lease(searcher);
+				
+				
+			} while (!leased);
 
 			return searcher;
 
