@@ -19,9 +19,18 @@ public class LuceneTransactionHandler {
     @Around("@annotation(annotation)")
     public Object transactionalMethod(ProceedingJoinPoint joinPoint, LuceneTransactional annotation)
             throws Throwable {
+    	
+    	//If this is nested method, let the most outer scope deal with
+    	//leasing and releasing
+    	if (LuceneSessionHolder.isTransactionalScope()) {
+    		if (logger.isDebugEnabled()) {
+    			logger.debug("LuceneSessionHolder proceed in inner scope");
+    		}
+    		return joinPoint.proceed();
+    	}
 
-        if (logger.isTraceEnabled()) {
-            logger.trace("LuceneSessionHolder.lease");
+        if (logger.isDebugEnabled()) {
+            logger.debug("LuceneSessionHolder.lease");
         }
 
         LuceneSessionHolder.lease(annotation.readOnly());
@@ -36,16 +45,16 @@ public class LuceneTransactionHandler {
         } finally {
             if (!rollback) {
                 
-                if (logger.isTraceEnabled()) {
-                    logger.trace("LuceneSessionHolder.release");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("LuceneSessionHolder.release");
                 }
                 
                 LuceneSessionHolder.release();
             }
             else {
                 
-                if (logger.isTraceEnabled()) {
-                    logger.trace("LuceneSessionHolder.rollbackAndRelease");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("LuceneSessionHolder.rollbackAndRelease");
                 }
                 
                 LuceneSessionHolder.rollbackAndRelease();

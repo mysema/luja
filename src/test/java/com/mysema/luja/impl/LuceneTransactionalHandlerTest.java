@@ -3,7 +3,7 @@ package com.mysema.luja.impl;
 import static com.mysema.luja.QueryTestHelper.createDocument;
 import static com.mysema.luja.QueryTestHelper.createDocuments;
 import static com.mysema.luja.QueryTestHelper.getDocument;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import org.apache.lucene.store.RAMDirectory;
 import org.junit.Before;
@@ -38,6 +38,13 @@ public class LuceneTransactionalHandlerTest {
 
         testDao = factory.getProxy();
     }
+
+	private NestedDao getNestedDao() {
+		AspectJProxyFactory factory = new AspectJProxyFactory(
+				new NestedDaoImpl(sessionFactory));
+		factory.addAspect(handler);
+		return factory.getProxy();
+	}
 
     @Test
     public void Empty() {
@@ -108,31 +115,51 @@ public class LuceneTransactionalHandlerTest {
         
     }
 
-    @Test
-    public void RuntimeExceptionCausesRollback() {
-        try {
-            testDao.throwsException();
-        } catch (RuntimeException e) {
-            // Nothing
-        }
+	@Test
+	public void RuntimeExceptionCausesRollback() {
+		boolean gotExp = false;
+		try {
+			testDao.throwsException();
+		} catch (RuntimeException e) {
+			gotExp = true;
+		}
 
-        LuceneQuery q = sessionFactory.openReadOnlySession().createQuery();
-        assertEquals(0, q.where(path.title.eq("rollback")).count());
-    }
-    
-    
-    @Test
-    public void CheckedExceptionCauseRollback() {
-        try {
-            testDao.throwsCheckedException();
-        } catch (Exception e) {
-            // Nothing
-        }
+		LuceneQuery q = sessionFactory.openReadOnlySession().createQuery();
+		assertEquals(0, q.where(path.title.eq("rollback")).count());
+		assertEquals("Should have gotten exception", true, gotExp);
+	}
 
-        LuceneQuery q = sessionFactory.openReadOnlySession().createQuery();
-        assertEquals(0, q.where(path.title.eq("rollback-checked")).count());
-    }
-    
+	@Test
+	public void CheckedExceptionCauseRollback() {
+		boolean gotExp = false;
+		try {
+			testDao.throwsCheckedException();
+		} catch (Exception e) {
+			gotExp = true;
+		}
+
+		LuceneQuery q = sessionFactory.openReadOnlySession().createQuery();
+		assertEquals(0, q.where(path.title.eq("rollback-checked")).count());
+		assertEquals("Should have gotten exception", true, gotExp);
+	}
+
+	@Test
+	public void NestedExceptionRollback() {
+
+		testDao.setNested(getNestedDao());
+	
+		boolean gotExp = false;
+		try {
+			testDao.nestedException();
+		} catch (Exception e) {
+			gotExp = true;
+		}
+
+		LuceneQuery q = sessionFactory.openReadOnlySession().createQuery();
+		assertEquals(0, q.where(path.title.eq("nested rollback")).count());
+		assertEquals(0, q.where(path.title.eq("nested")).count());
+		assertEquals("Should have gotten exception", true, gotExp);
+	}
 
     private static interface TestDao {
         void empty();
@@ -156,6 +183,8 @@ public class LuceneTransactionalHandlerTest {
         void throwsException();
         
         void throwsCheckedException() throws Exception;
+        
+        void nestedException();
     }
     
     private static class TestDaoImpl implements TestDao {
@@ -230,6 +259,14 @@ public class LuceneTransactionalHandlerTest {
             LuceneSession session = factories[0].getCurrentSession();
             session.beginReset().addDocument(createDocument("1", "nested","","",0,0));
             nested.nested();
+        }
+        
+        @Override
+        @LuceneTransactional
+        public void nestedException() {
+        	LuceneSession session = factories[0].getCurrentSession();
+            session.beginAppend().addDocument(createDocument("1", "nested","","",0,0));
+            nested.nestedException();
         }
         
         @Override

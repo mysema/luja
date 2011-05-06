@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+<project
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
   xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
@@ -11,7 +12,7 @@
   <groupId>com.mysema.luja</groupId>
   <artifactId>luja</artifactId>
   <name>Luja</name>
-  <version>0.5.12-SNAPSHOT</version>
+  <version>0.5.13</version>
   <description>Luja - Lucene sessions with Querydsl</description>
   <packaging>jar</packaging>
 
@@ -44,8 +45,8 @@
       <artifactId>querydsl-apt</artifactId>
       <version>${querydsl.version}</version>
     </dependency>
-    <!--dependency> <groupId>com.mysema.converters</groupId> <artifactId>converters</artifactId> <version>${converters.version}</version> 
-      </dependency -->
+    <!--dependency> <groupId>com.mysema.converters</groupId> <artifactId>converters</artifactId> 
+      <version>${converters.version}</version> </dependency -->
 
     <dependency>
       <groupId>org.apache.lucene</groupId>
@@ -79,6 +80,13 @@
     </dependency>
 
     <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.6.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-aop</artifactId>
       <version>3.0.3.RELEASE</version>
@@ -91,13 +99,13 @@
       <version>1.3.2</version>
       <scope>test</scope>
     </dependency>
-    
+
     <dependency>
       <groupId>joda-time</groupId>
       <artifactId>joda-time</artifactId>
       <version>1.6</version>
     </dependency>
-    
+
   </dependencies>
 
   <build>
@@ -121,13 +129,13 @@
         </executions>
       </plugin>
     </plugins>
-    <extensions> 
-      <extension> 
-        <groupId>org.apache.maven.wagon</groupId> 
-         <artifactId>wagon-ssh</artifactId> 
-         <version>1.0-beta-7</version> 
-      </extension> 
-    </extensions> 
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-ssh</artifactId>
+        <version>1.0-beta-7</version>
+      </extension>
+    </extensions>
   </build>
 
 </project>
