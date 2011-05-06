@@ -39,9 +39,9 @@ public class LuceneTransactionalHandlerTest {
         testDao = factory.getProxy();
     }
 
-	private NestedDao getNestedDao() {
+	private NestedDao getNestedDao(LuceneSessionFactory sf) {
 		AspectJProxyFactory factory = new AspectJProxyFactory(
-				new NestedDaoImpl(sessionFactory));
+				new NestedDaoImpl(sf));
 		factory.addAspect(handler);
 		return factory.getProxy();
 	}
@@ -146,7 +146,7 @@ public class LuceneTransactionalHandlerTest {
 	@Test
 	public void NestedExceptionRollback() {
 
-		testDao.setNested(getNestedDao());
+		testDao.setNested(getNestedDao(sessionFactory));
 	
 		boolean gotExp = false;
 		try {
@@ -157,6 +157,26 @@ public class LuceneTransactionalHandlerTest {
 
 		LuceneQuery q = sessionFactory.openReadOnlySession().createQuery();
 		assertEquals(0, q.where(path.title.eq("nested rollback")).count());
+		assertEquals(0, q.where(path.title.eq("nested")).count());
+		assertEquals("Should have gotten exception", true, gotExp);
+	}
+	
+	@Test
+	public void NestedExceptionWithDifferentSession() {
+		
+		LuceneSessionFactory sf1 = new LuceneSessionFactoryImpl(new RAMDirectory());
+		testDao.setNested(getNestedDao(sf1));
+		
+		boolean gotExp = false;
+		try {
+			testDao.nestedException();
+		} catch (Exception e) {
+			gotExp = true;
+		}
+
+		LuceneQuery q = sf1.openReadOnlySession().createQuery();
+		assertEquals(0, q.where(path.title.eq("nested rollback")).count());
+		q = sessionFactory.openReadOnlySession().createQuery();
 		assertEquals(0, q.where(path.title.eq("nested")).count());
 		assertEquals("Should have gotten exception", true, gotExp);
 	}
