@@ -12,7 +12,7 @@
   <groupId>com.mysema.luja</groupId>
   <artifactId>luja</artifactId>
   <name>Luja</name>
-  <version>0.5.13</version>
+  <version>0.5.13-SNAPSHOT</version>
   <description>Luja - Lucene sessions with Querydsl</description>
   <packaging>jar</packaging>
 
