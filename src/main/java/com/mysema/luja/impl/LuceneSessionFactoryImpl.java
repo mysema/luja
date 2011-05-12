@@ -3,10 +3,12 @@ package com.mysema.luja.impl;
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.slf4j.Logger;
@@ -109,6 +111,8 @@ public class LuceneSessionFactoryImpl implements LuceneSessionFactory {
 			long start = 0;
 			boolean leased = true;
 			
+			LuceneSearcher leasedSearcher = null;
+			
 			do {
 				// Creating first searcher instance in synchronized way
 				if (searcher == null) {
@@ -122,7 +126,7 @@ public class LuceneSessionFactoryImpl implements LuceneSessionFactory {
 						//
 					}
 				}
-
+				
 				//Start counting timeout if we are on the lease failed loop
 				if (!leased && start == 0) {
 					start = System.currentTimeMillis();
@@ -135,31 +139,39 @@ public class LuceneSessionFactoryImpl implements LuceneSessionFactory {
 				
 				// If the creating new is in the progress, it's still
 				// possible to lease old reader
-				if (creatingNew.compareAndSet(false, true)) {
-					if (!searcher.isCurrent()) {
-						try {
-							// This release pairs with createNewSearcher lease
-							release(searcher);
-						} catch (QueryException e) {
-							logger.error("Could not release searcher", e);
-						}
-						searcher = createNewSearcher();
-					}
+                if (creatingNew.compareAndSet(false, true)) {
+                    try {
+                        if (!searcher.isCurrent()) {
+                            try {
+                                // This release pairs with createNewSearcher
+                                // lease
+                                release(searcher);
+                            } catch (QueryException e) {
+                                logger.error("Could not release searcher", e);
+                            }
+                            searcher = createNewSearcher();
+                        }
+                    } finally {
+                        creatingNew.set(false);
+                    }
+                }
 
-					creatingNew.set(false);
-				}
-
+                //Using local copy, as we want to give out the same
+                //searcher we lease, not the new one that might have been created in the
+                //between we leased and are returning the leased searcher
+                leasedSearcher = searcher;
+                
 				// Incrementing reference as we lease this out
 				// This pairs with LuceneSessions close
 				// Try this in loop as we might be in the corner case
 				// where actually searcher is being released and we want valid
 				// searcher from here
-				leased = lease(searcher);
+				leased = lease(leasedSearcher);
 				
 				
 			} while (!leased);
 
-			return searcher;
+			return leasedSearcher;
 
 		} catch (IOException e) {
 			throw new QueryException(e);
