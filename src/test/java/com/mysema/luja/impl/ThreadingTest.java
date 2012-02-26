@@ -269,7 +269,7 @@ public class ThreadingTest {
 
         ExecutorService threads = Executors.newFixedThreadPool(4);
 
-        int simulationtimeInSecs = 60;
+        int simulationtimeInSecs = 90;
 
         // Readers
         TaskRunner readRunner = new TaskRunner("read", 100, 120, simulationtimeInSecs / 1000, dao);

@@ -2,8 +2,15 @@ package com.mysema.luja.impl;
 
 public interface Leasable {
 
-    void lease();
+	/**
+	 * Leases, returns true if lease is successful
+	 * @return
+	 */
+    boolean lease();
 
+    /**
+     * Releases the lease
+     */
     void release();
 
 }

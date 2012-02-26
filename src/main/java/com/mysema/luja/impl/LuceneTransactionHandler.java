@@ -19,34 +19,50 @@ public class LuceneTransactionHandler {
     @Around("@annotation(annotation)")
     public Object transactionalMethod(ProceedingJoinPoint joinPoint, LuceneTransactional annotation)
             throws Throwable {
+    	
+    	//If this is nested method, let the most outer scope deal with
+    	//leasing and releasing
+    	if (LuceneSessionHolder.isTransactionalScope()) {
+    		if (logger.isDebugEnabled()) {
+    			logger.debug("LuceneSessionHolder proceed in inner scope");
+    		}
+    		return joinPoint.proceed();
+    	}
 
-        if (logger.isTraceEnabled()) {
-            logger.trace("LuceneSessionHolder.lease");
+        if (logger.isDebugEnabled()) {
+            logger.debug("LuceneSessionHolder.lease");
         }
 
         LuceneSessionHolder.lease(annotation.readOnly());
         boolean rollback = false;
         try {
             return joinPoint.proceed();
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
 
             rollback = isRollback(annotation, e);
 
             throw e;
         } finally {
-            if (logger.isTraceEnabled()) {
-                logger.trace("LuceneSessionHolder.release");
-            }
             if (!rollback) {
+                
+                if (logger.isDebugEnabled()) {
+                    logger.debug("LuceneSessionHolder.release");
+                }
+                
                 LuceneSessionHolder.release();
             }
             else {
+                
+                if (logger.isDebugEnabled()) {
+                    logger.debug("LuceneSessionHolder.rollbackAndRelease");
+                }
+                
                 LuceneSessionHolder.rollbackAndRelease();
             }
         }
     }
 
-    private boolean isRollback(LuceneTransactional annotation, RuntimeException exception) {
+    private boolean isRollback(LuceneTransactional annotation, Exception exception) {
         // TODO Add annotation support for exceptions ala Hibernate
 
         // Filter runtime exceptions which are not valid for rollback
@@ -56,7 +72,7 @@ public class LuceneTransactionHandler {
             return false;
         }
         
-        logger.error("Runtime exception from transactional method, rollbacking", exception);
+        logger.error("Exception from transactional method, rollbacking", exception);
         return true;
     }
 

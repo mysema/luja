@@ -3,15 +3,13 @@ package com.mysema.luja.impl;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.index.IndexWriter.MaxFieldLength;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.LockObtainFailedException;
-import org.apache.lucene.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +33,8 @@ public class FileLockingWriter implements LuceneWriter, Leasable {
             if (!create) {
                 try {
                     writer =
-                        new IndexWriter(directory, new StandardAnalyzer(Version.LUCENE_30), false,
-                                        MaxFieldLength.LIMITED);
+                        new IndexWriter(directory, sessionFactory.getAnalyzerFactory()
+                                .newAnalyzer(), false, MaxFieldLength.LIMITED);
 
                 } catch (FileNotFoundException e) {
                     // Convience to create a new index if it's not already
@@ -46,13 +44,12 @@ public class FileLockingWriter implements LuceneWriter, Leasable {
             }
             if (create) {
                 writer =
-                    new IndexWriter(directory, new StandardAnalyzer(Version.LUCENE_30), true,
-                                    MaxFieldLength.LIMITED);
+                    new IndexWriter(directory, sessionFactory.getAnalyzerFactory().newAnalyzer(),
+                                    true, MaxFieldLength.LIMITED);
             }
 
         } catch (LockObtainFailedException e) {
-            logger.error("Got lock timeout ");
-            throw new WriteLockObtainFailedException(e);
+            throw new WriteLockObtainFailedException("Got lock timeout", e);
         } catch (IOException e) {
             throw new QueryException(e);
         }
@@ -76,6 +73,16 @@ public class FileLockingWriter implements LuceneWriter, Leasable {
     public LuceneWriter deleteDocuments(Term term) {
         try {
             writer.deleteDocuments(term);
+            return this;
+        } catch (IOException e) {
+            throw new QueryException(e);
+        }
+    }
+    
+    @Override
+    public LuceneWriter updateDocument(Term term, Document doc) {
+        try {
+            writer.updateDocument(term, doc);
             return this;
         } catch (IOException e) {
             throw new QueryException(e);
@@ -109,16 +116,16 @@ public class FileLockingWriter implements LuceneWriter, Leasable {
                 logger.debug("Closed writer " + writer);
             }
         } catch (IOException e) {
-            logger.error("Writer close failed", e);
             try {
                 if (IndexWriter.isLocked(directory)) {
                     IndexWriter.unlock(directory);
                 }
             } catch (IOException e1) {
-                logger.error("Lock release failed", e1);
-                throw new QueryException(e1);
+                //Log this error, as otherwise we would loose IOException on close
+                logger.error("Writer close failed", e);
+                throw new QueryException("Lock release failed", e1);
             }
-            throw new QueryException(e);
+            throw new QueryException("Writer close failed", e);
         }
     }
 
@@ -127,8 +134,9 @@ public class FileLockingWriter implements LuceneWriter, Leasable {
     }
 
     @Override
-    public void lease() {
-        // This is no-op for writer as we always create new
+    public boolean lease() {
+    	// This is no-op for writer as we always create new
+    	return true;
     }
 
     @Override

@@ -5,17 +5,26 @@ import static com.mysema.luja.QueryTestHelper.createDocument;
 import static com.mysema.luja.QueryTestHelper.createDocuments;
 import static com.mysema.luja.QueryTestHelper.getDocument;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.junit.Before;
@@ -96,7 +105,7 @@ public class LuceneSessionFactoryTest {
         createDocuments(session);
         session.commit();
 
-        // Now we will see the three documents
+        // Now we will see the four documents
         LuceneQuery query = session.createQuery();
         assertEquals(4, query.where(year.gt(1800)).count());
 
@@ -113,8 +122,13 @@ public class LuceneSessionFactoryTest {
         LuceneQuery query1 = session.createQuery();
         assertEquals(5, query1.where(year.gt(1800)).count());
 
-        // The old query still sees the same 3
-        assertEquals(4, query.count());
+        // The old query throws exception as it's closed on commit
+        try {
+        	query.count();
+        	fail("Query is closed and there should have been exception");
+        } catch(AlreadyClosedException e) {
+        	//Nothing
+        }
 
         session.close();
     }
@@ -165,6 +179,25 @@ public class LuceneSessionFactoryTest {
         session.close();
         session.beginReset();
     }
+    
+   @Test(expected = AlreadyClosedException.class)
+   public void PreviousQueryIsClosedAfterCommit() {
+	   addData(sessionFactory);
+	   
+	   LuceneSession session = sessionFactory.openSession();
+	   //make change, that next commit invalidates current readers
+	   createDocuments(session);
+	   LuceneQuery query1 = session.createQuery();
+	   assertEquals(4, query1.count());
+       
+	   session.commit();
+       
+       //This will close the query1
+       session.createQuery();
+       
+       //IndexReader in query1 should be closed now
+       query1.where(year.gt(1800)).count();
+   }
 
     @Test
     public void Reset() {
@@ -189,42 +222,88 @@ public class LuceneSessionFactoryTest {
 
     private class CountingSessionFactory extends LuceneSessionFactoryImpl {
 
-        List<Leasable> leasables = new ArrayList<Leasable>();
-
+        List<Leasable> leaseCalls = new ArrayList<Leasable>();
+   
         Map<Leasable, Integer> leases = new HashMap<Leasable, Integer>();
-
-        Map<Leasable, Integer> releases = new HashMap<Leasable, Integer>();
 
         public CountingSessionFactory(Directory directory) {
             super(directory);
         }
 
         @Override
-        public void lease(Leasable leasable) {
-            if (!leasables.contains(leasable)) {
-                leasables.add(leasable);
+        public boolean lease(Leasable leasable) {
+            boolean success = super.lease(leasable);
+            // Don't count failed leases
+            if (!success)
+                return success;
+
+            count(true, leasable);
+            return success;
+        }
+        
+        public void assertAllLeasesReleased() throws IOException {
+            Leasable oneAllowedOpen = null;
+            for (int i = 0; i < leaseCalls.size(); i++) {
+                Leasable l = leaseCalls.get(i);
+
+                // One reader should be left open
+
+                assertNotNull("Not found leasable " + l + " in index " + i, leases.get(l));
+                if (leases.get(l) > 0) {
+                    if (l instanceof FileLockingWriter) {
+                        fail("Found open writer " + l + " with ref count "
+                                + leases.get(0));
+                    }
+                    if (oneAllowedOpen == null || l == oneAllowedOpen) {
+                        System.out.println("Found allowed open in index " + i + " " + l);
+                        oneAllowedOpen = l;
+                        continue;
+                    }
+                    if (l == oneAllowedOpen) {
+                        
+                    }
+
+                }
+                assertEquals("For leaseable " + l + " the ref count is "
+                        + leases.get(l) + " in the index " + i, 0,
+                        (int) leases.get(l));
+                
+                assertLeasableIsClosed(l);
             }
-            if (!leases.containsKey(leasable)) {
-                leases.put(leasable, 0);
+
+            if (oneAllowedOpen == null) {
+                fail("There should be one reader left open");
             }
-            leases.put(leasable, leases.get(leasable) + 1);
-            super.lease(leasable);
+        }
+
+        private synchronized void count(boolean lease, Leasable leasable) {
+            if (lease) {
+                //System.out.println("leasing " + leasable);
+                
+                leaseCalls.add(leasable);
+                if (!leases.containsKey(leasable)) {
+                    leases.put(leasable, 0);
+                }
+                
+                leases.put(leasable, leases.get(leasable) + 1);
+            }
+            else {
+                if (!leases.containsKey(leasable) ) 
+                    throw new RuntimeException("Trying to release not leased leasable " + leasable);
+                if (leases.get(leasable) == 0)
+                    throw new RuntimeException("Trying to release already released leasable " + leasable);
+                leases.put(leasable, leases.get(leasable) - 1);
+            }
         }
 
         @Override
         public void release(Leasable leasable) {
-            if (!leasables.contains(leasable)) {
-                leasables.add(leasable);
-            }
-            if (!releases.containsKey(leasable)) {
-                releases.put(leasable, 0);
-            }
-            releases.put(leasable, releases.get(leasable) + 1);
+            count(false, leasable);
             super.release(leasable);
         }
 
     }
-
+    
     @Test
     public void ResourcesAreReleased() throws IOException {
 
@@ -232,61 +311,140 @@ public class LuceneSessionFactoryTest {
 
         LuceneSession session = sessionFactory.openSession();
 
-        // Lease one writer
-        session.beginAppend().addDocument(getDocument());
+        String curTitle = "Resource release test";
+        // Lease writer, leases +1
+        session.beginAppend().addDocument(createDocument("1", curTitle, "", "", 0, 0));
         session.commit();
 
-        // Lease searcher 1
+        // Lease searcher 1, leases +2 
         LuceneQuery query = session.createQuery();
-        assertEquals(1, query.where(year.gt(1800)).count());
+        assertEquals(1, query.where(title.eq(curTitle)).count());
 
-        session.beginAppend().addDocument(getDocument());
+        //Using the same writer
+        session.beginAppend().addDocument(createDocument("2", curTitle, "", "", 0, 0));
         // Release searcher 1
         session.commit();
 
-        // Lease searcher 2
+        // Lease searcher 2, leases +2
         query = session.createQuery();
-        assertEquals(2, query.where(year.gt(1800)).count());
+        assertEquals(2, query.where(title.eq(curTitle)).count());
 
         // Release searcher 2 and writer
         session.close();
 
         // Second session
-        session = sessionFactory.openSession(true);
-        // Lease searcher 3
+        session = sessionFactory.openReadOnlySession();
+        // Lease searcher 3, leases +2, as the session.close has second commit
+        // which dirties the searcher even there was not changes.
         query = session.createQuery();
-        assertEquals(2, query.where(year.gt(1800)).count());
+        assertEquals(2, query.where(title.eq(curTitle)).count());
         // Release searcher 3
         session.close();
 
-        assertEquals(4, sessionFactory.leasables.size());
-        assertEquals(4, sessionFactory.leases.size());
-        assertEquals(4, sessionFactory.releases.size());
+        // Third session
+        session = sessionFactory.openReadOnlySession();
+        // Lease searcher 4, leases +1 as there is no changes
+        query = session.createQuery();
+        assertEquals(2, query.where(title.eq(curTitle)).count());
+        // Release searcher 4
+        session.close();
 
-        // First one should be writer
-        assertTrue(sessionFactory.leasables.get(0) instanceof FileLockingWriter);
-        assertTrue(sessionFactory.leasables.get(1) instanceof LuceneSearcher);
-        assertTrue(sessionFactory.leasables.get(2) instanceof LuceneSearcher);
-        assertTrue(sessionFactory.leasables.get(3) instanceof LuceneSearcher);
-
-        // The writer should be closed
-        assertEquals(1, (int) sessionFactory.leases.get(sessionFactory.leasables.get(0)));
-        assertEquals(1, (int) sessionFactory.releases.get(sessionFactory.leasables.get(0)));
-
-        // First and second searchers should be released totally
-        assertEquals(2, (int) sessionFactory.leases.get(sessionFactory.leasables.get(1)));
-        assertEquals(2, (int) sessionFactory.releases.get(sessionFactory.leasables.get(1)));
-
-        assertEquals(2, (int) sessionFactory.leases.get(sessionFactory.leasables.get(2)));
-        assertEquals(2, (int) sessionFactory.releases.get(sessionFactory.leasables.get(2)));
-
-        // Third searcher leaves it as current
-        assertEquals(2, (int) sessionFactory.leases.get(sessionFactory.leasables.get(3)));
-        assertEquals(1, (int) sessionFactory.releases.get(sessionFactory.leasables.get(3)));
-
+        assertEquals(1 + 2 + 2 + 2 + 1, sessionFactory.leaseCalls.size());
+        // 1 writer, 3 unique searchers
+        assertEquals(1 + 3, sessionFactory.leases.size());
+        sessionFactory.assertAllLeasesReleased();
     }
 
+    private class Releases implements Runnable {
+
+        private LuceneSessionFactory sessionFactory;
+        private int loops;
+
+        public Releases(LuceneSessionFactory sessionFactory, int loops) {
+            this.sessionFactory = sessionFactory;
+            this.loops = loops;
+        }
+
+        @Override
+        public void run() {
+            System.out.println("Started running on thread "
+                    + Thread.currentThread());
+
+            String curTitle = Thread.currentThread().toString();
+
+            for (int i = 1; i <= loops; i++) {
+
+                LuceneSession session = sessionFactory.openSession();
+                // Lease one writer
+                session.beginAppend().addDocument(
+                        createDocument("" + i, curTitle, "", "", 0, 0));
+                session.commit();
+
+                // Lease searcher 1
+                LuceneQuery query = session.createQuery();
+                assertEquals(i, query.where(title.eq(curTitle)).count());
+
+                // Release searcher and writer
+                session.close();
+
+                // Second session
+                session = sessionFactory.openReadOnlySession();
+                // Lease searcher 2
+                query = session.createQuery();
+                assertEquals(i, query.where(title.eq(curTitle)).count());
+                // Release searcher 3
+                session.close();
+            }
+
+            System.out.println("End running on thread "
+                    + Thread.currentThread());
+        }
+    }
+    
     @Test
+    public void ResourcesAreReleasedOnTwoThreads() throws Exception {
+        
+        CountingSessionFactory sessionFactory = new CountingSessionFactory(directory);
+        sessionFactory.setDefaultLockTimeout(10000);
+        
+        int numOfThreads = 2;
+        int loops = 100;
+        ExecutorService threads = Executors.newFixedThreadPool(numOfThreads);
+        Future<?> f1 = threads.submit(new Releases(sessionFactory, loops));
+        Future<?> f2 = threads.submit(new Releases(sessionFactory, loops));
+        
+        f1.get(150, TimeUnit.SECONDS);
+        f2.get(150, TimeUnit.SECONDS);
+        threads.shutdown();
+        
+        //Amount of leaseCalls 
+        System.out.println("Amount of leaseCalls is " + sessionFactory.leaseCalls.size());
+        sessionFactory.assertAllLeasesReleased();
+    }
+
+    private void assertLeasableIsClosed(Leasable leasable) throws IOException {
+
+        if (leasable instanceof LuceneSearcher) {
+            IndexSearcher searcher = ((LuceneSearcher) leasable)
+                    .getIndexSearcer();
+            try {
+                searcher.getIndexReader().flush();
+                fail("Indexreader was not closed");
+            } catch (AlreadyClosedException e) {
+                // Nothing
+            }
+        } else {
+            IndexWriter writer = ((FileLockingWriter) leasable).writer;
+            try {
+                writer.commit();
+                fail("Indexwriter was not closed");
+            } catch (AlreadyClosedException e) {
+                // Nothing
+            }
+        }
+    }
+
+	@Test
     public void StringPathCreationWorks() throws IOException {
         sessionFactory = new LuceneSessionFactoryImpl("target/stringpathtest");
         LuceneSession session = sessionFactory.openSession();

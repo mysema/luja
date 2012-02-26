@@ -28,9 +28,8 @@ public final class LuceneSessionHolder {
         new ThreadLocal<TransactionalScope>();
 
     private static class TransactionalScope {
-        private int referenceCount = 0;
 
-        private final boolean readOnly;
+    	private final boolean readOnly;
 
         private TransactionalScope(boolean readOnly) {
             this.readOnly = readOnly;
@@ -73,45 +72,40 @@ public final class LuceneSessionHolder {
         release(false);
     }
     
-    private static void release(boolean rollback) {
-        
-        if (rollback) {
-            //Immediately release, if nested, the upper methods will get
-            //session closed exception if they try to use session after this
-            scope.get().referenceCount = 0;
-        } else {
-            scope.get().referenceCount--;
-        }
+	private static void release(boolean rollback) {
 
-        if (scope.get().referenceCount == 0) {
-            try {
-                for (LuceneSession session : getSessions().values()) {
-                    try {
-                        if (rollback) {
-                            session.rollback();
-                        } else {
-                            // System.out.println("session holder close");
-                            session.close();
-                        }
-                    } catch (QueryException e) {
-                        // System.out.println("failed to close session " +
-                        // e.getCause().getMessage());
-                        logger.error("Failed to close session", e);
-                    }
-                }
-            } finally {
-                sessions.remove();
-                scope.remove();
-            }
-        }
-    }
+		if (scope.get() == null) {
+			throw new QueryException(
+					"There is no transactional scope to release");
+		}
 
-    public static void lease(boolean readOnly) {
-        if (scope.get() == null) {
-            scope.set(new TransactionalScope(readOnly));
-        }
-        scope.get().referenceCount++;
-    }
+		try {
+			for (LuceneSession session : getSessions().values()) {
+				try {
+					if (rollback) {
+						session.rollback();
+					} else {
+						// System.out.println("session holder close");
+						session.close();
+					}
+				} catch (QueryException e) {
+					// System.out.println("failed to close session " +
+					// e.getCause().getMessage());
+					logger.error("Failed to close session", e);
+				}
+			}
+		} finally {
+			sessions.remove();
+			scope.remove();
+		}
+	}
+
+	public static void lease(boolean readOnly) {
+		if (isTransactionalScope()) {
+			throw new QueryException("There is already a transactional scope");
+		}
+		scope.set(new TransactionalScope(readOnly));
+	}
 
     public static boolean getReadOnly() {
         Assert.notNull(scope.get(), "No transactional scope");

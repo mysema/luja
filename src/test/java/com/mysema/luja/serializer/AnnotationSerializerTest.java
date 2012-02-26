@@ -17,7 +17,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.mysema.luja.LuceneSession;
-import com.mysema.luja.LuceneSessionFactory;
 import com.mysema.luja.impl.LuceneSessionFactoryImpl;
 import com.mysema.luja.mapping.domain.FieldAnnotated;
 import com.mysema.luja.mapping.domain.QFieldAnnotated;
@@ -30,7 +29,7 @@ public class AnnotationSerializerTest {
 
     private List<FieldAnnotated> data = new ArrayList<FieldAnnotated>();
 
-    private LuceneSessionFactory sessionFactory;
+    private LuceneSessionFactoryImpl sessionFactory;
 
     LocalDate d1 = new LocalDate(2009, 12, 30);
 
@@ -88,7 +87,7 @@ public class AnnotationSerializerTest {
 
     @Test
     public void LocalDateSort() {
-        LuceneSession session = sessionFactory.openSession(true);
+        LuceneSession session = sessionFactory.openReadOnlySession();
         List<FieldAnnotated> results =
             convertList(session.createQuery().orderBy(d.date.desc()).list());
         assertEquals(data.get(2).getIntNumber(), results.get(0).getIntNumber());
@@ -112,7 +111,7 @@ public class AnnotationSerializerTest {
 
     @Test
     public void DateSort() {
-        LuceneSession session = sessionFactory.openSession(true);
+        LuceneSession session = sessionFactory.openReadOnlySession();
         List<FieldAnnotated> results =
             convertList(session.createQuery().orderBy(d.javaDate.desc()).list());
         assertEquals(data.get(2).getIntNumber(), results.get(0).getIntNumber());
@@ -139,7 +138,7 @@ public class AnnotationSerializerTest {
 
     @Test
     public void DateTimeSort() {
-        LuceneSession session = sessionFactory.openSession(true);
+        LuceneSession session = sessionFactory.openReadOnlySession();
         List<FieldAnnotated> results =
             convertList(session.createQuery().orderBy(d.time.desc()).list());
         assertEquals(data.get(2).getIntNumber(), results.get(0).getIntNumber());
@@ -162,7 +161,7 @@ public class AnnotationSerializerTest {
 
     @Test
     public void LocalDateTimeSort() {
-        LuceneSession session = sessionFactory.openSession(true);
+        LuceneSession session = sessionFactory.openReadOnlySession();
         List<FieldAnnotated> results =
             convertList(session.createQuery().orderBy(d.localTime.desc()).list());
         assertEquals(data.get(2).getIntNumber(), results.get(0).getIntNumber());
@@ -174,6 +173,33 @@ public class AnnotationSerializerTest {
         assertEquals(data.get(1).getIntNumber(), results.get(1).getIntNumber());
         assertEquals(data.get(2).getIntNumber(), results.get(2).getIntNumber());
     }
+    
+    @Test
+    public void LocaleBasedSort() {
+        
+        LuceneSession session = sessionFactory.openSession();
+        session.beginReset()
+            .addDocument(new FieldAnnotated(3, "\u00c4").toDocument())
+            .addDocument(new FieldAnnotated(2, "b").toDocument())
+            .addDocument(new FieldAnnotated(1,"a").toDocument());
+        session.close();
+        
+        sessionFactory.setSortLocale(Locale.ENGLISH);
+        session = sessionFactory.openReadOnlySession();
+        List<FieldAnnotated> results = convertList(session.createQuery().orderBy(d.name.asc()).list());
+        assertEquals(1, results.get(0).getIntNumber());
+        assertEquals(3, results.get(1).getIntNumber());
+        assertEquals(2, results.get(2).getIntNumber());
+        session.close();
+        
+        sessionFactory.setSortLocale(new Locale("fi", "FI"));
+        session = sessionFactory.openReadOnlySession();
+        results = convertList(session.createQuery().orderBy(d.name.asc()).list());
+        assertEquals(1, results.get(0).getIntNumber());
+        assertEquals(2, results.get(1).getIntNumber());
+        assertEquals(3, results.get(2).getIntNumber());
+        session.close();
+    }
 
     @Test
     public void LocalDateTimeSearch() {
@@ -184,7 +210,7 @@ public class AnnotationSerializerTest {
 
     @Test
     public void DatesAndTimesRoundtripWorks() {
-        LuceneSession session = sessionFactory.openSession(true);
+        LuceneSession session = sessionFactory.openReadOnlySession();
         List<FieldAnnotated> results = convertList(session.createQuery().list());
         assertEquals(3, results.size());
         assertEquals(d1, results.get(0).getDate());
@@ -211,7 +237,7 @@ public class AnnotationSerializerTest {
     }
 
     private void assertQuery(Predicate where, FieldAnnotated... expects) {
-        LuceneSession session = sessionFactory.openSession(true);
+        LuceneSession session = sessionFactory.openReadOnlySession();
         LuceneQuery query = session.createQuery().where(where).orderBy(d.intNumber.asc());
         System.out.println(query);
         List<Document> results = query.list();
@@ -243,7 +269,7 @@ public class AnnotationSerializerTest {
         data.add(new FieldAnnotated(3, d3, t3, lt3, jd3, "ABC-123 D", "Esko Aakkonen",
                                     "PHP C Scala Ruby", enUk));
 
-        LuceneSession session = sessionFactory.openSession(false);
+        LuceneSession session = sessionFactory.openSession();
         session.beginReset().addDocument(data.get(0).toDocument())
                 .addDocument(data.get(1).toDocument()).addDocument(data.get(2).toDocument());
         session.close();

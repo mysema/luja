@@ -1,15 +1,16 @@
 package com.mysema.luja;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.NumericField;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.NumericField;
 
 public final class QueryTestHelper {
 
     public static void addData(LuceneSessionFactory sessionFactory) {
-        LuceneSession session = sessionFactory.openSession(false);
+        LuceneSession session = sessionFactory.openSession();
         createDocuments(session);
         session.close(); 
     }
@@ -67,6 +68,18 @@ public final class QueryTestHelper {
         doc.add(new NumericField("gross", Store.YES, true).setDoubleValue(docGross));
 
         return doc;
+    }
+    
+    public static String randomWords(int count) {
+        
+        StringBuilder builder = new StringBuilder();
+        for(int i= 0;i<count;i++) {
+            builder.append(RandomStringUtils.random(3));
+            builder.append(" ");
+            
+        }
+        
+        return builder.toString();
     }
     
 }

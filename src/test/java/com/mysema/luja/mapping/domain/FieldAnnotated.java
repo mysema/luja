@@ -4,7 +4,7 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.Locale;
 
-import org.apache.commons.lang.LocaleUtils;
+import org.apache.commons.lang3.LocaleUtils;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field.Index;
@@ -46,6 +46,11 @@ public class FieldAnnotated {
     private Locale locale;
 
     public FieldAnnotated() {
+    }
+
+    public FieldAnnotated(int id, String name) {
+        this(id, new LocalDate(), new DateTime(), new LocalDateTime(), new Date(), "", name, "",
+             Locale.ENGLISH);
     }
 
     public FieldAnnotated(int intNumber, LocalDate date, DateTime time, LocalDateTime localTime,

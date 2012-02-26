@@ -1,8 +1,9 @@
 package com.mysema.luja.serializer;
 
 import java.util.Date;
+import java.util.Locale;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Field.Index;
 import org.joda.time.DateTimeZone;
@@ -18,7 +19,7 @@ import com.mysema.query.types.Path;
 
 /**
  * Lucene query serializer that understands Luja annotations and quides the
- * Lucene serialiser. Supports LocalDate, LocalDateTime, ReadableInstant and
+ * Lucene serializer. Supports LocalDate, LocalDateTime, ReadableInstant and
  * java.util.Date.
  * 
  * @author laimw
@@ -26,8 +27,8 @@ import com.mysema.query.types.Path;
  */
 public class AnnotationSerializer extends LuceneSerializer {
 
-    public AnnotationSerializer() {
-        super(true, true);
+    public AnnotationSerializer(Locale sortLocale) {
+        super(true, true, sortLocale);
     }
 
     @Override
