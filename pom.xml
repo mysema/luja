@@ -12,12 +12,12 @@
   <groupId>com.mysema.luja</groupId>
   <artifactId>luja</artifactId>
   <name>Luja</name>
-  <version>0.6.1</version>
+  <version>0.7.0</version>
   <description>Luja - Lucene sessions with object document mapping</description>
   <packaging>jar</packaging>
 
   <properties>
-    <querydsl.version>2.3.3</querydsl.version>
+    <querydsl.version>2.5.0</querydsl.version>
     <converters.version>0.1.1</converters.version>
   </properties>
 
@@ -45,8 +45,6 @@
       <artifactId>querydsl-apt</artifactId>
       <version>${querydsl.version}</version>
     </dependency>
-    <!--dependency> <groupId>com.mysema.converters</groupId> <artifactId>converters</artifactId> 
-      <version>${converters.version}</version> </dependency -->
 
     <dependency>
       <groupId>org.apache.lucene</groupId>

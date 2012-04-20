@@ -1,6 +1,7 @@
 package com.mysema.luja;
 
-import org.apache.commons.lang3.RandomStringUtils;
+import java.util.UUID;
+
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
@@ -74,7 +75,8 @@ public final class QueryTestHelper {
         
         StringBuilder builder = new StringBuilder();
         for(int i= 0;i<count;i++) {
-            builder.append(RandomStringUtils.random(3));
+//            builder.append(RandomStringUtils.random(3));
+            builder.append(UUID.randomUUID().toString().substring(0, 3));
             builder.append(" ");
             
         }

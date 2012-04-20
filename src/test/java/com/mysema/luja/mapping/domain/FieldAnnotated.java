@@ -4,7 +4,6 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.Locale;
 
-import org.apache.commons.lang3.LocaleUtils;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field.Index;
@@ -87,7 +86,7 @@ public class FieldAnnotated {
         code = document.getFieldable("code").stringValue();
         name = document.getFieldable("name").stringValue();
         tokenized = document.getFieldable("tokenized").stringValue();
-        locale = LocaleUtils.toLocale(document.getFieldable("locale").stringValue());
+        locale = new Locale(document.getFieldable("locale").stringValue());
     }
 
     public Document toDocument() {

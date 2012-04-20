@@ -2,8 +2,8 @@ package com.mysema.luja.serializer;
 
 import java.util.Date;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Field.Index;
 import org.joda.time.DateTimeZone;
@@ -11,6 +11,8 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.ReadableInstant;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import com.mysema.luja.annotations.DateResolution;
 import com.mysema.luja.annotations.Field;
 import com.mysema.luja.annotations.Resolution;
@@ -27,6 +29,8 @@ import com.mysema.query.types.Path;
  */
 public class AnnotationSerializer extends LuceneSerializer {
 
+    private static final Splitter WS_SPLITTER = Splitter.on(Pattern.compile("\\s+"));
+    
     public AnnotationSerializer(Locale sortLocale) {
         super(true, true, sortLocale);
     }
@@ -45,7 +49,7 @@ public class AnnotationSerializer extends LuceneSerializer {
         if (isAnalyzed(leftSide)) {
             str = str.toLowerCase();
             if (!str.equals("")) {
-                return StringUtils.split(str);
+                return Iterables.toArray(WS_SPLITTER.split(str), String.class);
             }
         }
 
