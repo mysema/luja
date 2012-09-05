@@ -6,33 +6,33 @@
   <parent>
     <groupId>com.mysema.home</groupId>
     <artifactId>mysema-source</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
   </parent>
 
   <groupId>com.mysema.luja</groupId>
   <artifactId>luja</artifactId>
   <name>Luja</name>
-  <version>0.7.0</version>
+  <version>0.7.1</version>
   <description>Luja - Lucene sessions with object document mapping</description>
   <packaging>jar</packaging>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  
+  <scm>
+    <connection>scm:git:git@github.com:mysema/luja.git</connection>
+    <url>git@github.com:mysema/luja.git</url>
+  </scm>    
 
   <properties>
     <querydsl.version>2.5.0</querydsl.version>
     <converters.version>0.1.1</converters.version>
   </properties>
-
-  <repositories>
-    <repository>
-      <id>mysema-releases</id>
-      <url>http://source.mysema.com/maven2/releases</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
 
   <dependencies>
     <dependency>
